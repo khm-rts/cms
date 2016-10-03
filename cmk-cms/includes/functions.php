@@ -276,14 +276,12 @@ function logout()
 	session_regenerate_id();
 }
 
-function security($prefix = '../')
+function security()
 {
 	// If the current fingerprint returned from the function doesn't match the fingerprint stored in session, logout!
 	if ( $_SESSION['fingerprint'] != fingerprint() )
 	{
 		logout();
-		header('Location: ' . $prefix . 'login.php');
-		exit;
 	}
 
 	// If developer status is false, use on session
@@ -293,8 +291,6 @@ function security($prefix = '../')
 		if ( isset($_SESSION['last_activity']) && $_SESSION['last_activity'] + 1800 < time() )
 		{
 			logout();
-			header('Location: ' . $prefix . 'login.php');
-			exit;
 		}
 		// Or update the session with current timestamp
 		else
