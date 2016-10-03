@@ -1,0 +1,36 @@
+@charset "utf-8";
+/* CSS Document */
+html, body {
+	height: 100%;
+}
+
+body {
+	background-color:#FFFFFF;
+}
+
+.row, [class*='col-'] { border:1px dotted #d3d3d3; }
+
+.hidden-xs {
+	display:block !important;
+	visibility:visible !important;
+	position:absolute;
+	opacity:0.1;
+}
+
+	
+.visible-xs { opacity:1; }
+
+.collapse { display:block; }
+
+/* Small devices (tablets, 768px and up) */
+@media(min-width:768px) {
+	.hidden-xs { opacity:1; }
+	
+	.visible-xs {
+		display:block !important;
+		visibility:visible !important;
+		position:absolute;
+		opacity:0.1;
+	}
+}
+
