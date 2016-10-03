@@ -95,7 +95,7 @@ function prettyprint($data)
  * @param int $page_around: The desired amount of pages to skip before and after the current page
  * @param bool $show_disabled_arrows: Show disabled next or previous links, or hide them
  */
-function pagination($page_no, $items_total, $page_length, $page_around = 2, $show_disabled_arrows = true)
+function pagination($page, $page_no, $items_total, $page_length, $page_around = 2, $show_disabled_arrows = true)
 {
 	// Only show pagination total items is greater than page length
 	if ($items_total > $page_length)
@@ -127,7 +127,7 @@ function pagination($page_no, $items_total, $page_length, $page_around = 2, $sho
 		// If current page is greater than 1, show previous button
 		if ($page_no > 1)
 		{
-			echo '<li><a href="index.php?page=users&page-no=' . ($page_no - 1) . '" data-page="users" data-params="page-no=' . ($page_no - 1) . '">' . $icons['previous'] . '</a></li>';
+			echo '<li><a href="index.php?page=' . $page . '&page-no=' . ($page_no - 1) . '" data-page="' . $page . '" data-params="page-no=' . ($page_no - 1) . '">' . $icons['previous'] . '</a></li>';
 		}
 		// If current page is not greater than 1 and show_disabled_arrows is set to true, show disabled previous link
 		else if ($show_disabled_arrows)
@@ -136,7 +136,7 @@ function pagination($page_no, $items_total, $page_length, $page_around = 2, $sho
 		}
 
 		// Show first page
-		echo '<li' . ($page_no == 1 ? ' class="active"' : '') . '><a href="index.php?page=users&page-no=1" data-page="users" data-params="page-no=1">1</a></li>';
+		echo '<li' . ($page_no == 1 ? ' class="active"' : '') . '><a href="index.php?page=' . $page . '&page-no=1" data-page="' . $page . '" data-params="page-no=1">1</a></li>';
 
 		// If page_from is greater than 2, we have skipped some pages, and show 3 dots
 		if ($page_from > 2)
@@ -147,7 +147,7 @@ function pagination($page_no, $items_total, $page_length, $page_around = 2, $sho
 		// Do for-loop, start from number in page_from, and end with the number in page_to, increment with one each loop
 		for($i = $page_from; $i <= $page_to; $i++)
 		{
-			echo '<li' . ($page_no == $i ? ' class="active"' : '') . '><a href="index.php?page=users&page-no=' . $i . '" data-page="users" data-params="page-no=' . $i . '">' . $i . '</a></li>';
+			echo '<li' . ($page_no == $i ? ' class="active"' : '') . '><a href="index.php?page=' . $page . '&page-no=' . $i . '" data-page="' . $page . '" data-params="page-no=' . $i . '">' . $i . '</a></li>';
 		}
 
 		// If page_to is smaller than the second last page, we have skipped some pages in the end, so we show 3 dots
@@ -157,12 +157,12 @@ function pagination($page_no, $items_total, $page_length, $page_around = 2, $sho
 		}
 
 		// Show last page
-		echo '<li' . ($page_no == $pages_total ? ' class="active"' : '') . '><a href="index.php?page=users&page-no=' . $pages_total . '" data-page="users" data-params="page-no=' . $pages_total . '">' . $pages_total . '</a></li>';
+		echo '<li' . ($page_no == $pages_total ? ' class="active"' : '') . '><a href="index.php?page=' . $page . '&page-no=' . $pages_total . '" data-page="' . $page . '" data-params="page-no=' . $pages_total . '">' . $pages_total . '</a></li>';
 
 		// If current page is smaller than pages total, show next link
 		if ($page_no < $pages_total)
 		{
-			echo '<li><a href="index.php?page=users&page-no=' . ($page_no + 1) . '" data-page="users" data-params="page-no=' . ($page_no + 1) . '">' . $icons['next'] . '</a></li>';
+			echo '<li><a href="index.php?page=' . $page . '&page-no=' . ($page_no + 1) . '" data-page="' . $page . '" data-params="page-no=' . ($page_no + 1) . '">' . $icons['next'] . '</a></li>';
 		}
 		// If current page is not smaller than pages total and show_disabled_arrows is set to true, show disabled next link
 		else if ($show_disabled_arrows)

@@ -89,3 +89,4 @@ define('CONNECT_ERROR',			'Ingen forbindelse til databasen');
 define('SQL_ERROR',				'Der skete en fejl, prøv venligst igen. Kontakt os hvis problemet fortsætter');
 define('NO_ITEM_SELECTED',		'Der er ikke valgt et element.');
 define('EMAIL_OR_PW_INVALID',	'Den indtastede e-mailadresse og/eller adgangskode er ikke korrekt');
+define('DATETIME_FORMAT',		'%a, %e. %b %Y kl. %H:%i');

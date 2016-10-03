@@ -23,7 +23,7 @@ if ( !isset($view_files) )
 	</div>
 
 	<div class="card-body">
-		<form method="post" data-page="user-edit">
+		<form method="post" data-page="user-edit" data-params="id=<?php echo $_GET['id'] ?>">
 			<?php
 			if ( !isset($_GET['id']) || empty($_GET['id']) )
 			{
