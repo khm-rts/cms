@@ -1,20 +1,23 @@
 <?php
+// If view_files is not defined, the page is not included in ../index.php, so it's missing config.php and updated $view_file with current_page
 if ( !isset($view_files) )
 {
 	require '../config.php';
 	$view_file = 'events';
 }
 
-// If session users is not defineds, define it with empty array
+// If session events is not defined, define it with empty array
 if ( !isset($_SESSION[$view_file]) )	$_SESSION[$view_file]				= [];
-// If these URL params is set, save their value to session
+// If these URL params is defined, save their value to session
 if ( isset($_GET['page-no']) )		$_SESSION[$view_file]['page_no']		= $_GET['page-no'];
 if ( isset($_GET['sort-by']) )		$_SESSION[$view_file]['sort_by']		= $_GET['sort-by'];
 if ( isset($_GET['order']) )		$_SESSION[$view_file]['order']			= $_GET['order'];
 
+// If URL param page_length is defined and the value is between min and max value from $page_lengths, defined in config.php, then update the value in session
 if ( isset($_GET['page-length']) && $_GET['page-length'] >= min($page_lengths) && $_GET['page-length'] <= max($page_lengths) )
 {
 	$_SESSION[$view_file]['page_length']	= $_GET['page-length'];
+	// Different page length has impact on the amount of pages, so unset current page
 	unset($_SESSION[$view_file]['page_no']);
 }
 
@@ -22,6 +25,7 @@ if ( isset($_GET['page-length']) && $_GET['page-length'] >= min($page_lengths) &
 if ( isset($_GET['search']) && !empty($_GET['search']) )
 {
 	$_SESSION[$view_file]['search'] = $_GET['search'];
+	// Search limits the result and therefor the amount of pages, so unset current page
 	unset($_SESSION[$view_file]['page_no']);
 }
 
@@ -32,22 +36,30 @@ if ( isset($_GET['search']) && empty($_GET['search']) ) unset($_SESSION[$view_fi
 $page_length	= isset($_SESSION[$view_file]['page_length'])	? intval($_SESSION[$view_file]['page_length'])	: PAGE_LENGTH;
 $page_no		= isset($_SESSION[$view_file]['page_no'])		? $_SESSION[$view_file]['page_no']				: 1;
 $sort_by		= isset($_SESSION[$view_file]['sort_by'])		? $_SESSION[$view_file]['sort_by']				: 'timestamp';
-$order			= isset($_SESSION[$view_file]['order'])		? $mysqli->escape_string($_SESSION[$view_file]['order']) : 'desc';
+$order			= isset($_SESSION[$view_file]['order'])			? $mysqli->escape_string($_SESSION[$view_file]['order']) : 'desc';
 $search			= isset($_SESSION[$view_file]['search'])		? $mysqli->escape_string($_SESSION[$view_file]['search']) : '';
+// Define variables with empty value to put asc or desc icons in for current $sort_by
 $icon_timestamp	= $icon_type = $icon_description = $icon_user_name = $icon_role_name = '';
 
 
+// If current order is desc
 if ($order == 'desc')
 {
+	// Set new order to asc
 	$new_order	= 'asc';
+	// And current icon to sort-desc
 	$icon		= $icons['sort-desc'];
 }
+// If current order is asc
 else
 {
+	// Set new order to desc
 	$new_order	= 'desc';
+	// And current icon to sort-asc
 	$icon		= $icons['sort-asc'];
 }
 
+// Do switch to update icon used for current $sort_by and define $order_by with the sql used to order in this page $query
 switch($sort_by)
 {
 	case 'timestamp':
@@ -99,8 +111,10 @@ switch($sort_by)
 							<?php
 							foreach($page_lengths as $key => $value)
 							{
+								// If the current $page_length matches the key in the array, save selected in the variable $selected or save empty string
 								$selected = $page_length == $key ? ' selected' : '';
 
+								// Add option to select with key from array as value and value from array as label to option
 								echo '<option value="' . $key . '"' . $selected . '>' .$value .'</option>';
 							}
 							?>
