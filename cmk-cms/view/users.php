@@ -8,7 +8,6 @@ if ( !isset($view_files) )
 
 page_access($view_file);
 
-
 // If session users is not defined, define it with empty array
 if ( !isset($_SESSION[$view_file]) )	$_SESSION[$view_file]				= [];
 // If these URL params is set, save their value to session
@@ -311,12 +310,10 @@ if ( isset($_GET['delete'], $_GET['id']) && !empty($_GET['id']) && $_GET['id'] !
 
 		<div class="row">
 			<div class="col-md-3">
-				<?php
-				echo sprintf(SHOWING_ITEMS_AMOUNT, ($items_current_total == 0 ) ? 0 : $offset + 1, $offset + $items_current_total, $items_total) ?>
+				<?php echo sprintf(SHOWING_ITEMS_AMOUNT, ($items_current_total == 0 ) ? 0 : $offset + 1, $offset + $items_current_total, $items_total) ?>
 			</div>
 			<div class="col-md-9 text-right">
-				<?php
-				pagination($view_file, $page_no, $items_total, $page_length) ?>
+				<?php pagination($view_file, $page_no, $items_total, $page_length) ?>
 			</div>
 		</div>
 	</div>
