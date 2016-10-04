@@ -1,7 +1,8 @@
 <?php
 session_start();
 
-$include_path = 'includes/';
+$root			= '';
+$include_path	= 'includes/';
 define('DEVELOPER_STATUS',	true);
 define('PAGE_LENGTH', 		10);
 
@@ -19,6 +20,13 @@ else
 
 require 'lang/da_DK.php';
 require $include_path . 'functions.php';
+
+if ( isset($_SESSION['user']['id']) )
+{
+	// If page isn't reloaded, the securty functions wasn't run on index.php, so run them here
+	check_fingerprint();
+	check_last_activity();
+}
 
 // Configuration for Database
 $db_host	= 'localhost';

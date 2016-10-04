@@ -6,6 +6,8 @@ if ( !isset($view_files) )
 	$view_file = 'events';
 }
 
+page_access($view_file);
+
 // If session events is not defined, define it with empty array
 if ( !isset($_SESSION[$view_file]) )	$_SESSION[$view_file]				= [];
 // If these URL params is defined, save their value to session

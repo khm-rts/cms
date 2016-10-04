@@ -2,8 +2,12 @@
 if ( !isset($view_files) )
 {
 	require '../config.php';
-	$include_path = '../' . $include_path;
+	$root			= '../';
+	$include_path	= $root . $include_path;
+	$view_file		= 'user-create';
 }
+
+page_access($view_file);
 ?>
 
 <div class="page-title">
@@ -26,7 +30,7 @@ if ( !isset($view_files) )
 		<form method="post" data-page="user-create">
 			<?php
 			// Save variables with empty values, to be used in the forms input values
-			$name = $email = $role = $password_required_label = '';
+			$name = $email = $role_id = $password_required_label = '';
 			$password_required = 'required';
 
 			// If the form has been submitted
@@ -35,7 +39,6 @@ if ( !isset($view_files) )
 				// Escape inputs and save values to variables defined before with empty value
 				$name	= $mysqli->escape_string($_POST['name']);
 				$email	= $mysqli->escape_string($_POST['email']);
-				$role	= intval($_POST['role']);
 
 				// If one of the required fields is empty, show alert
 				if ( empty($_POST['name']) || empty($_POST['email']) || empty($_POST['password']) || empty($_POST['confirm_password']) || empty($_POST['role']) )
@@ -77,6 +80,32 @@ if ( !isset($view_files) )
 						// If the password matched, continue
 						else
 						{
+							// Get the id for the selected role
+							$role_id	= intval($_POST['role']);
+							// Get the selected role's access level from the database
+							$query	=
+								"SELECT 
+									role_access_level 
+								FROM 
+									roles 
+								WHERE 
+									role_id = $role_id";
+							$result = $mysqli->query($query);
+
+							// If result returns false, use the function query_error to show debugging info
+							if (!$result)
+							{
+								query_error($query, __LINE__, __FILE__);
+							}
+
+							$role	= $result->fetch_object();
+
+							// If selected role's access level higher or equal to the current users access level and the current user is not super admin, owerwrite the selected role_id with the default value (role_id for 'User')
+							if ($role->role_access_level >= $_SESSION['user']['access_level'] && $_SESSION['user']['access_level'] != 1000)
+							{
+								$role_id = 4;
+							}
+
 							// Use password_hash with the algorithm from the predefined constant PASSWORD_DEFAULT, and default cost
 							$password_hash = password_hash($_POST['password'], PASSWORD_DEFAULT);
 
@@ -84,7 +113,7 @@ if ( !isset($view_files) )
 							$query =
 								"INSERT INTO 
 									users (user_name, user_email, user_password, fk_role_id) 
-								VALUES ('$name', '$email', '$password_hash', $role)";
+								VALUES ('$name', '$email', '$password_hash', $role_id)";
 							$result = $mysqli->query($query);
 
 							// If result returns false, use the function query_error to show debugging info

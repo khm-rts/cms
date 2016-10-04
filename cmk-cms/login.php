@@ -1,6 +1,13 @@
 <?php
 ob_start();
 require 'config.php';
+
+// If already sign in, go to index.php
+if ( isset($_SESSION['user']['id']) )
+{
+	header('Location: index.php');
+	exit;
+}
 ?>
 <!DOCTYPE html>
 <html>

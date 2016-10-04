@@ -276,14 +276,23 @@ function logout()
 	session_regenerate_id();
 }
 
-function security()
+function check_fingerprint()
 {
 	// If the current fingerprint returned from the function doesn't match the fingerprint stored in session, logout!
 	if ( $_SESSION['fingerprint'] != fingerprint() )
 	{
 		logout();
+		?>
+		<script type="text/javascript">
+			location.href= 'login.php';
+		</script>
+		<?php
+		exit;
 	}
+}
 
+function check_last_activity()
+{
 	// If developer status is false, use on session
 	if (!DEVELOPER_STATUS)
 	{
@@ -291,6 +300,12 @@ function security()
 		if ( isset($_SESSION['last_activity']) && $_SESSION['last_activity'] + 1800 < time() )
 		{
 			logout();
+			?>
+			<script type="text/javascript">
+				location.href= 'login.php';
+			</script>
+			<?php
+			exit;
 		}
 		// Or update the session with current timestamp
 		else
@@ -298,5 +313,19 @@ function security()
 			$_SESSION['last_activity'] = time();
 		}
 	}
+}
 
+function page_access($page)
+{
+	global $view_files;
+
+	if ( $view_files[$page]['required_access_lvl'] > $_SESSION['user']['access_level'])
+	{
+		?>
+		<script type="text/javascript">
+			location.href= 'index.php';
+		</script>
+		<?php
+		exit;
+	}
 }

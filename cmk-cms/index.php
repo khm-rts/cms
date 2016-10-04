@@ -10,8 +10,6 @@ if ( !isset($_SESSION['user']['id']) || !isset($_SESSION['user']['access_level']
 	exit;
 }
 
-security('');
-
 // If logout is defined in URL params, run function to logout
 if ( isset($_GET['logout']) )
 {
@@ -90,7 +88,7 @@ $view_title	= $view_files[$view_file]['title'] . ' - CMK Admin';
                         <li class="dropdown profile">
 							<?php
 							// Get the selected users id from the session
-							$id		= intval($_SESSION['user']['id']);
+							$current_user_id = intval($_SESSION['user']['id']);
 							// Get the user from the Database
 							$query	=
 								"SELECT 
@@ -98,7 +96,7 @@ $view_title	= $view_files[$view_file]['title'] . ' - CMK Admin';
 								FROM 
 									users 
 								WHERE 
-									user_id = $id";
+									user_id = $current_user_id";
 							$result = $mysqli->query($query);
 
 							// If result returns false, use the function query_error to show debugging info
