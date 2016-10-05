@@ -35,10 +35,10 @@ page_access($view_file);
 			}
 			else
 			{
-				// Get the selected users id from the URL param
+				// Get the selected page id from the URL param
 				$id	= intval($_GET['id']);
 
-				// Get the user from the Database
+				// Get the page from the Database
 				$query	=
 					"SELECT 
 						page_url_key, page_title, page_meta_robots, page_meta_description 

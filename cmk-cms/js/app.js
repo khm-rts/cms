@@ -65,7 +65,7 @@ $(function() {
 
 		$('.select2').select2();
 
-		//var sortable_cache = $('#sortable').html();
+		var sortable_cache = $('#sortable').html();
 		$('#sortable').sortable({
 			items	: '.sortable-item', // Element med denne klasse er det der flyttes på
 			handle	: '.sortable-handle', // Element med denne klasse bruges til at trække i
@@ -85,6 +85,20 @@ $(function() {
 					section	: $(this).data('section'),
 					data	: data_array
 				};
+
+				// Do ajax request to sortable.php, send the data_object as data and use post. Return the data from the php-file as json.
+				$.ajax({
+					type	: 'post',
+					url		: 'includes/sortable.php',
+					data	: data_object,
+					dataType: 'json',
+					success : function (response) { // On success, check if the returned status is false. If it is, return order to the previous
+						if ( !response.status )
+						{
+							$('#sortable').html(sortable_cache);
+						}
+					}
+				})
 			}
 		});
 
