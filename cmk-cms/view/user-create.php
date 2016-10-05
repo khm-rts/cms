@@ -27,7 +27,7 @@ page_access($view_file);
 	</div>
 
 	<div class="card-body">
-		<form method="post" data-page="user-create">
+		<form method="post" data-page="<?php echo $view_file ?>">
 			<?php
 			// Save variables with empty values, to be used in the forms input values
 			$name = $email = $role_id = $password_required_label = '';

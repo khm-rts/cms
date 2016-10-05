@@ -36,9 +36,9 @@ if ( isset($_POST['type'], $_POST['status'], $_POST['id']) && !empty($_POST['typ
 					$row = $result_user->fetch_object();
 
 					// Only toggle the selected user if the access level is below the current users access level or is super admin
-					if ($row->role_access_level < $_SESSION['user']['access_level'] || $_SESSION['user']['access_level'] == 1000) {
+					if ( $row->role_access_level < $_SESSION['user']['access_level'] || is_super_admin() ) {
 						// If status is true, save 1 to $status, or save 0
-						$status = $_POST['status'] ? 1 : 0;
+						$status = $_POST['status'] == 'true' ? 1 : 0;
 
 						// Update status for toggled user
 						$query =
@@ -60,13 +60,14 @@ if ( isset($_POST['type'], $_POST['status'], $_POST['id']) && !empty($_POST['typ
 			break;
 		// If the value is page-protected, do this (defined in the toggles attribute data-type)
 		case 'page-protected':
-			if ($_SESSION['user']['access_level'] == 1000)
+
+			if ( is_super_admin() )
 			{
 				// Secure the value from id is int
 				$id = intval($_POST['id']);
 
 				// If status is true, save 1 to $status, or save 0
-				$status = $_POST['status'] ? 1 : 0;
+				$status = $_POST['status'] == 'true' ? 1 : 0;
 
 				// Update status for toggled user
 				$query =
@@ -88,39 +89,48 @@ if ( isset($_POST['type'], $_POST['status'], $_POST['id']) && !empty($_POST['typ
 		case 'page-status':
 			if ($_SESSION['user']['access_level'] >= 100)
 			{
-				prettyprint($_POST);
 				// Secure the value from id is int
 				$id = intval($_POST['id']);
 
-				// If status is true, save 1 to $status, or save 0
-				//$status = $_POST['status'] === true ? 1 : 0;
-				if ($_POST['status'])
-				{
-					$status = 1;
-				}
-				else if (!$_POST['status'])
-				{
-					$status = 0;
-				}
-				else
-				{
-					echo 'fejl';
+				// Get the user from the Database
+				$query =
+					"SELECT 
+						page_protected 
+					FROM 
+						pages 
+					WHERE 
+						page_id = $id";
+				$result_page = $mysqli->query($query);
+
+				// If result returns false, use the function query_error to show debugging info
+				if (!$result_page) {
+					query_error($query, __LINE__, __FILE__);
 				}
 
-				// Update status for toggled user
-				$query =
-					"UPDATE 
+				// Return the information from the Database as an object
+				$row = $result_page->fetch_object();
+
+				// Only toggle page_status if page is not protected or the current user is Super Admin
+				if ($row->page_protected != 1 || is_super_admin() )
+				{
+					// If status is true, save 1 to $status, or save 0
+					$status = $_POST['status'] == 'true' ? 1 : 0;
+
+					// Update status for toggled user
+					$query =
+						"UPDATE 
 						pages 
 					SET 
 						page_status = $status 
 					WHERE 
 						page_id = $id";
-				echo $query;
-				$result = $mysqli->query($query);
+					echo $query;
+					$result = $mysqli->query($query);
 
-				// If result returns false, run the function query_error do show debugging info
-				if (!$result) {
-					query_error($query, __LINE__, __FILE__);
+					// If result returns false, run the function query_error do show debugging info
+					if (!$result) {
+						query_error($query, __LINE__, __FILE__);
+					}
 				}
 			}
 			break;

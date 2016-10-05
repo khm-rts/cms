@@ -2,8 +2,12 @@
 if ( !isset($view_files) )
 {
 	require '../config.php';
-	$include_path = '../' . $include_path;
+	$root			= '../';
+	$include_path	= $root . $include_path;
+	$view_file		= 'page-create';
 }
+
+page_access($view_file);
 ?>
 
 <div class="page-title">
@@ -23,13 +27,83 @@ if ( !isset($view_files) )
 	</div>
 
 	<div class="card-body">
-		<form method="post" data-page="page-create">
-			<div class="alert alert-success alert-dismissible" role="alert">
-				<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-				<?php echo ITEM_CREATED ?> <a href="index.php?page=pages" data-page="pages"><?php echo RETURN_TO_OVERVIEW ?></a>
-			</div>
+		<form method="post" data-page="<?php echo $view_file ?>">
+			<?php
+			// Save variables with empty values, to be used in the forms input values
+			$title = $url_key = $meta_description_tmp = '';
+			$meta_robots = 'index, follow';
 
-			<?php include $include_path . 'form-page.php' ?>
+			// If the form has been submitted
+			if ( isset($_POST['save_item']) )
+			{
+				// Escape inputs and save values to variables defined before with empty value
+				$title					= $mysqli->escape_string($_POST['title']);
+				$url_key				= $mysqli->escape_string($_POST['url_key']);
+				$meta_robots			= $mysqli->escape_string($_POST['meta_robots']);
+				$meta_description_tmp	= $_POST['meta_description'];
+
+
+				// If one of the required fields is empty, show alert
+				if ( empty($_POST['title']) || empty($_POST['meta_robots']) )
+				{
+					alert('warning', REQUIRED_FIELDS_EMPTY);
+				}
+				// If all required fields is not empty, continue
+				else
+				{
+					// Match pages with this url_key
+					$query =
+						"SELECT 
+							page_id 
+						FROM 
+							pages 
+						WHERE 
+							page_url_key = '$url_key'";
+					$result = $mysqli->query($query);
+
+					// If result returns false, use the function query_error to show debugging info
+					if (!$result)
+					{
+						query_error($query, __LINE__, __FILE__);
+					}
+
+					// If any rows was found, the email is not available, so show alert
+					if ($result->num_rows > 0)
+					{
+						alert('warning', URL_NOT_AVAILABLE);
+					}
+					// If url_key is available, continue
+					else
+					{
+						// If meta_description is empty, save NULL value to the variable meta_description and if not escape the value from the form and add single quotes
+						$meta_description = empty($_POST['meta_description']) ? 'NULL' : "'" . $mysqli->escape_string($_POST['meta_description']) . "'";
+
+						// Insert the page to the database
+						$query =
+							"INSERT INTO 
+								pages (page_url_key, page_title, page_meta_robots, page_meta_description) 
+							VALUES ('$url_key', '$title', '$meta_robots', $meta_description)";
+						$result = $mysqli->query($query);
+
+						// If result returns false, use the function query_error to show debugging info
+						if (!$result)
+						{
+							query_error($query, __LINE__, __FILE__);
+						}
+
+						// Get the newly created page id
+						$page_id = $mysqli->insert_id;
+
+						// Use function to insert event in log
+						create_event('create', 'af siden <a href="index.php?page=page-edit&id=' . $page_id . '" data-page="page-edit" data-params="id='. $page_id . '">' . $title . '</a>', $view_files[$view_file]['required_access_lvl']);
+
+						alert('success', ITEM_CREATED . ' <a href="index.php?page=pages" data-page="pages">' . RETURN_TO_OVERVIEW . '</a>');
+					} // Closes else to: if ($result->num_rows > 0)
+				} // Closes: ( empty($_POST['title']) || empty($_POST['url_key'])...
+			} // Closes: if ( isset($_POST['save_item']) )
+
+			include $include_path . 'form-page.php'
+			?>
 		</form>
 	</div>
 </div>

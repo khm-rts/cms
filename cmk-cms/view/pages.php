@@ -81,21 +81,19 @@ switch($sort_by)
 		break;
 }
 
-// If delete and id is defined in URL params, the id is not empty and id doesn't match the current users id, delete the selected user
-if ( isset($_GET['delete'], $_GET['id']) && !empty($_GET['id']) && $_GET['id'] != $_SESSION['user']['id'] )
+// If delete and id is defined in URL params  and the id is not empty, delete the selected page
+if ( isset($_GET['delete'], $_GET['id']) && !empty($_GET['id']) )
 {
-	// Get the selected users id from the URL param id
+	// Get the selected page id from the URL param id
 	$id		= intval($_GET['id']);
-	// Get the user from the Database
+	// Get the page from the Database
 	$query	=
-			"SELECT 
-			user_name, role_access_level 
+		"SELECT 
+			page_protected, page_title
 		FROM 
-			users 
-		INNER JOIN 
-			roles ON users.fk_role_id = roles.role_id
+			pages 
 		WHERE 
-			user_id = $id";
+			page_id = $id";
 	$result = $mysqli->query($query);
 
 	// If result returns false, use the function query_error to show debugging info
@@ -104,20 +102,20 @@ if ( isset($_GET['delete'], $_GET['id']) && !empty($_GET['id']) && $_GET['id'] !
 		query_error($query, __LINE__, __FILE__);
 	}
 
-	// Delete the selected user if found
+	// Delete the selected page if found
 	if ( $result->num_rows == 1)
 	{
 		// Return the information from the Database as an object
 		$row	= $result->fetch_object();
 
-		// Only delete the selected user if the access level is below the current userss access level or is super admin
-		if ($row->role_access_level < $_SESSION['user']['access_level'] || $_SESSION['user']['access_level'] == 1000)
+		// Only delete the selected page if the the selected page is not protected or current user is super admin
+		if ($row->page_protected != 1 || is_super_admin() )
 		{
 			$query =
-					"DELETE FROM
-					users 
+				"DELETE FROM
+					pages 
 				WHERE 
-					user_id = $id";
+					page_id = $id";
 			$result = $mysqli->query($query);
 
 			// If result returns false, use the function query_error to show debugging info
@@ -126,7 +124,7 @@ if ( isset($_GET['delete'], $_GET['id']) && !empty($_GET['id']) && $_GET['id'] !
 				query_error($query, __LINE__, __FILE__);
 			}
 
-			create_event('delete', 'af brugeren ' . $row->user_name, 100);
+			create_event('delete', 'af siden ' . $row->page_title, $view_files[$view_file]['required_access_lvl']);
 		}
 	}
 }
@@ -193,16 +191,23 @@ if ( isset($_GET['delete'], $_GET['id']) && !empty($_GET['id']) && $_GET['id'] !
 					<th>
 						<a href="index.php?page=<?php echo $view_file ?>&sort-by=title&order=<?php echo $new_order ?>" data-page="<?php echo $view_file ?>" data-params="sort-by=title&order=<?php echo $new_order ?>" title="<?php echo SORT_BY_THIS_COLUMN ?>"><?php echo $icon_title . TITLE ?></a>
 					</th>
+
 					<th>
 						<a href="index.php?page=<?php echo $view_file ?>&sort-by=url&order=<?php echo $new_order ?>" data-page="<?php echo $view_file ?>" data-params="sort-by=url&order=<?php echo $new_order ?>" title="<?php echo SORT_BY_THIS_COLUMN ?>"><?php echo $icon_url . URL ?></a>
 					</th>
+
 					<th class="icon"></th>
+
+					<?php if ( is_super_admin() ) { // Only show protection toggle for Super Admins ?>
 					<th class="toggle">
 						<a href="index.php?page=<?php echo $view_file ?>&sort-by=locked&order=<?php echo $new_order ?>" data-page="<?php echo $view_file ?>" data-params="sort-by=locked&order=<?php echo $new_order ?>" title="<?php echo SORT_BY_THIS_COLUMN ?>"><?php echo $icon_locked . LOCKED ?></a>
 					</th>
+					<?php } ?>
+
 					<th class="toggle">
 						<a href="index.php?page=<?php echo $view_file ?>&sort-by=status&order=<?php echo $new_order ?>" data-page="<?php echo $view_file ?>" data-params="sort-by=status&order=<?php echo $new_order ?>" title="<?php echo SORT_BY_THIS_COLUMN ?>"><?php echo $icon_status . STATUS ?></a>
 					</th>
+
 					<th class="icon"></th>
 					<th class="icon"></th>
 				</tr>
@@ -263,14 +268,18 @@ if ( isset($_GET['delete'], $_GET['id']) && !empty($_GET['id']) && $_GET['id'] !
 							<a href="index.php?page=page-content&page-id=<?php echo $row->page_id ?>" title="<?php echo $view_files['page-content']['title'] ?>" data-page="page-content" data-params="page-id=<?php echo $row->page_id ?>"><?php echo $view_files['page-content']['icon'] ?></a>
 						</td>
 
+						<?php if ( is_super_admin() ) { // Only show protection toggle for Super Admins ?>
 						<!-- TOGGLE TIL BESKYT/BESKYT IKKE ELEMENT -->
 						<td class="toggle">
 							<input type="checkbox" class="toggle-checkbox" id="<?php echo $row->page_id ?>" data-type="page-protected" <?php if ($row->page_protected == 1) {  echo 'checked'; } ?>>
 						</td>
+						<?php } ?>
 
 						<!-- TOGGLE TIL AKTIVER/DEAKTIVER ELEMENT -->
 						<td class="toggle">
+							<?php if ($row->page_protected != 1 || is_super_admin() ) { // If page is not protected or we are super admin, show status toggle ?>
 							<input type="checkbox" class="toggle-checkbox" id="<?php echo $row->page_id ?>" data-type="page-status" <?php if ($row->page_status == 1) {  echo 'checked'; } ?>>
+							<?php } ?>
 						</td>
 
 						<!-- REDIGER LINK -->
@@ -280,7 +289,9 @@ if ( isset($_GET['delete'], $_GET['id']) && !empty($_GET['id']) && $_GET['id'] !
 
 						<!-- SLET LINK -->
 						<td class="icon">
+							<?php if ($row->page_protected != 1 || is_super_admin() ) { // If page is not protected unless or we are super admin, show delete link ?>
 							<a class="<?php echo $buttons['delete'] ?>" data-toggle="confirmation" href="index.php?page=<?php echo $view_file; ?>&id=<?php echo $row->page_id ?>&delete" data-page="<?php echo $view_file; ?>" data-params="id=<?php echo $row->page_id ?>&delete" title="<?php echo DELETE_ITEM ?>"><?php echo $icons['delete'] ?></a>
+							<?php } ?>
 						</td>
 					</tr>
 					<?php

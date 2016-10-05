@@ -115,7 +115,7 @@ if ( isset($_GET['delete'], $_GET['id']) && !empty($_GET['id']) && $_GET['id'] !
 		$row	= $result->fetch_object();
 
 		// Only delete the selected user if the access level is below the current userss access level or is super admin
-		if ($row->role_access_level < $_SESSION['user']['access_level'] || $_SESSION['user']['access_level'] == 1000)
+		if ($row->role_access_level < $_SESSION['user']['access_level'] || is_super_admin() )
 		{
 			$query =
 				"DELETE FROM
@@ -282,21 +282,21 @@ if ( isset($_GET['delete'], $_GET['id']) && !empty($_GET['id']) && $_GET['id'] !
 
 						<!-- TOGGLE TIL AKTIVER/DEAKTIVER ELEMENT -->
 						<td class="toggle">
-							<?php if ($row->user_id != $_SESSION['user']['id'] && ($row->role_access_level <  $_SESSION['user']['access_level'] || $_SESSION['user']['access_level'] == 1000) ) { // Don't show toggle for current user and users with same access level, unless you're Super Administrator ?>
+							<?php if ( $row->user_id != $_SESSION['user']['id'] && ($row->role_access_level <  $_SESSION['user']['access_level'] || is_super_admin() ) ) { // Don't show toggle for current user and users with same access level, unless you're Super Administrator ?>
 							<input type="checkbox" class="toggle-checkbox" id="<?php echo $row->user_id ?>" data-type="users" <?php if ($row->user_status == 1) {  echo 'checked'; } ?>>
 							<?php } ?>
 						</td>
 
 						<!-- REDIGER LINK -->
 						<td class="icon">
-							<?php if ($row->user_id == $_SESSION['user']['id'] || $row->role_access_level < $_SESSION['user']['access_level'] || $_SESSION['user']['access_level'] == 1000) { // Don't show edit link for users with same access level, only our own user ?>
+							<?php if ( $row->user_id == $_SESSION['user']['id'] || $row->role_access_level < $_SESSION['user']['access_level'] || is_super_admin() ) { // Don't show edit link for users with same access level, only our own user ?>
 							<a class="<?php echo $buttons['edit'] ?>" href="index.php?page=user-edit&id=<?php echo $row->user_id ?>" data-page="user-edit" data-params="id=<?php echo $row->user_id ?>" title="<?php echo EDIT_ITEM ?>"><?php echo $icons['edit'] ?></a>
 							<?php } ?>
 						</td>
 
 						<!-- SLET LINK -->
 						<td class="icon">
-							<?php if ($row->user_id != $_SESSION['user']['id'] && ($row->role_access_level <  $_SESSION['user']['access_level'] || $_SESSION['user']['access_level'] == 1000) ) { // Don't show toggle for current user and users with same access level, unless you're Super Administrator ?>
+							<?php if ( $row->user_id != $_SESSION['user']['id'] && ($row->role_access_level <  $_SESSION['user']['access_level'] || is_super_admin() ) ) { // Don't show toggle for current user and users with same access level, unless you're Super Administrator ?>
 							<a class="<?php echo $buttons['delete'] ?>" data-toggle="confirmation" href="index.php?page=<?php echo $view_file ?>&id=<?php echo $row->user_id ?>&delete" data-page="<?php echo $view_file ?>" data-params="id=<?php echo $row->user_id ?>&delete" title="<?php echo DELETE_ITEM ?>"><?php echo $icons['delete'] ?></a>
 							<?php } ?>
 						</td>

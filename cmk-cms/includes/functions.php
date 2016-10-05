@@ -276,6 +276,15 @@ function logout()
 	session_regenerate_id();
 }
 
+/**
+ * Function to check if the current users access level is 1000, which is equal to Super Admin
+ * @return bool
+ */
+function is_super_admin()
+{
+	return $_SESSION['user']['access_level'] == 1000 ? true : false;
+}
+
 function check_fingerprint()
 {
 	// If the current fingerprint returned from the function doesn't match the fingerprint stored in session, logout!

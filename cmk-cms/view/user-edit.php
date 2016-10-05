@@ -60,7 +60,7 @@ page_access($view_file);
 			$row	= $result->fetch_object();
 
 			// Don't edit users with same access level, unless we are Super admin or it's our own user
-			if ($id == $_SESSION['user']['id'] || $row->role_access_level < $_SESSION['user']['access_level'] || $_SESSION['user']['access_level'] == 1000)
+			if ($id == $_SESSION['user']['id'] || $row->role_access_level < $_SESSION['user']['access_level'] || is_super_admin())
 			{
 				// Save the values from the Database to the variables used for values in the forms input elements
 				$name					= $row->user_name;
@@ -100,7 +100,7 @@ page_access($view_file);
 						$role	= $result->fetch_object();
 
 						// If selected role's access level is below the current users access level, or the current user is super admin, we can update the role for the selected user
-						if ($role->role_access_level < $_SESSION['user']['access_level'] || $_SESSION['user']['access_level'] == 1000)
+						if ( $role->role_access_level < $_SESSION['user']['access_level'] || is_super_admin() )
 						{
 							$role_sql = ", fk_role_id = $role_id";
 						}
@@ -184,7 +184,7 @@ page_access($view_file);
 				} // Closes: if ( isset($_POST['save_item']) )
 
 				include $include_path . 'form-user.php';
-			} // Closes: if ($id == $_SESSION['user']['id'] || $row->role_access_level < $_SESSION['user']['access_level'] || $_SESSION['user']['access_level'] == 1000)
+			} // Closes: if ($id == $_SESSION['user']['id'] || $row->role_access_level < $_SESSION['user']['access_level'] || is_super_admin() )
 			else
 			{
 				?>
