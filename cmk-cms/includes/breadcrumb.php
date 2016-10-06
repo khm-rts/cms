@@ -63,13 +63,13 @@ else
 
 				case 'page-content-create':
 					echo '<li><a href="index.php?page=pages" data-page="pages">' . $view_files['pages']['icon'] . $view_files['pages']['title'] . '</a></li>';
-					echo '<li><a href="index.php?page=page-content&page-id=1" data-page="page-content" data-params="page-id=1">' . $view_files['page-content']['icon'] . $view_files['page-content']['title'] . '</a></li>';
+					echo '<li><a href="index.php?page=page-content&page-id=' . $_GET['page-id'] . '" data-page="page-content" data-params="page-id=' . $_GET['page-id'] . '">' . $view_files['page-content']['icon'] . $view_files['page-content']['title'] . '</a></li>';
 					echo '<li class="active">' . $icons['create'] . CREATE_ITEM . '</li>';
 					break;
 
 				case 'page-content-edit':
 					echo '<li><a href="index.php?page=pages" data-page="pages">' . $view_files['pages']['icon'] . $view_files['pages']['title'] . '</a></li>';
-					echo '<li><a href="index.php?page=page-content&page-id=1" data-page="page-content" data-params="page-id=1">' . $view_files['page-content']['icon'] . $view_files['page-content']['title'] . '</a></li>';
+					echo '<li><a href="index.php?page=page-content&page-id=' . $_GET['page-id'] . '" data-page="page-content" data-params="page-id=' . $_GET['page-id'] . '">' . $view_files['page-content']['icon'] . $view_files['page-content']['title'] . '</a></li>';
 					echo '<li class="active">' . $icons['edit'] . EDIT_ITEM . '</li>';
 					break;
 

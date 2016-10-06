@@ -124,7 +124,6 @@ if ( isset($_POST['type'], $_POST['status'], $_POST['id']) && !empty($_POST['typ
 						page_status = $status 
 					WHERE 
 						page_id = $id";
-					echo $query;
 					$result = $mysqli->query($query);
 
 					// If result returns false, run the function query_error do show debugging info

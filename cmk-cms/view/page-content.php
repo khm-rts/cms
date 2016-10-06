@@ -7,14 +7,76 @@ if ( !isset($view_files) )
 
 page_access($view_file);
 
+// If page-id is not defined in URL params, or the value is empty, show alert
 if ( !isset($_GET['page-id']) || empty($_GET['page-id']) )
 {
 	alert('danger', NO_ITEM_SELECTED);
 }
+// If page-id is defined, continue
 else
 {
 	// Get the selected page id from the URL param
 	$page_id = intval($_GET['page-id']);
+
+	// If delete and id is defined in URL params  and the id is not empty, delete the selected page content
+	if ( isset($_GET['delete'], $_GET['id']) && !empty($_GET['id']) )
+	{
+		// Get the selected page id from the URL param id
+		$id		= intval($_GET['id']);
+		// Get the page from the Database
+		$query	=
+			"SELECT 
+				page_content_order, page_content_type, page_content_description, page_title, page_function_description
+			FROM 
+				page_content 
+			INNER JOIN 
+				pages ON page_content.fk_page_id = pages.page_id
+			LEFT JOIN 
+				page_functions ON page_content.fk_page_function_id = page_functions.page_function_id
+			WHERE 
+				page_content_id = $id";
+		$result = $mysqli->query($query);
+
+		// If result returns false, use the function query_error to show debugging info
+		if (!$result) query_error($query, __LINE__, __FILE__);
+
+		// Delete the selected page-content if found
+		if ( $result->num_rows == 1)
+		{
+			// Return the information from the Database as an object
+			$row	= $result->fetch_object();
+
+			$query =
+				"DELETE FROM
+					page_content 
+				WHERE 
+					page_content_id = $id";
+			$result = $mysqli->query($query);
+
+			// If result returns false, use the function query_error to show debugging info
+			if (!$result) query_error($query, __LINE__, __FILE__);
+
+			$current_order = $row->page_content_order;
+
+			// Update order
+			$query =
+				"UPDATE 
+					page_content 
+				SET 
+					page_content_order = page_content_order - 1 
+				WHERE 
+					page_content_order > $current_order 
+				AND 
+					fk_page_id = $page_id";
+			$result = $mysqli->query($query);
+
+			// If result returns false, use the function query_error to show debugging info
+			if (!$result) query_error($query, __LINE__, __FILE__);
+
+			// Opret delete event i logbogen.
+			create_event('delete', 'af inholdet ' . ($row->page_content_type == 1 ? $row->page_content_description : $row->page_function_description) . ' på ' . $row->page_title, $view_files[$view_file]['required_access_lvl']);
+		}
+	}
 
 	// Get the page from the Database
 	$query	=
