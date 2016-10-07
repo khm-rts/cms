@@ -26,9 +26,7 @@ if ( isset($_POST['type'], $_POST['status'], $_POST['id']) && !empty($_POST['typ
 				$result_user = $mysqli->query($query);
 
 				// If result returns false, use the function query_error to show debugging info
-				if (!$result_user) {
-					query_error($query, __LINE__, __FILE__);
-				}
+				if (!$result_user) query_error($query, __LINE__, __FILE__);
 
 				// Delete the selected user if found
 				if ($result_user->num_rows == 1) {
@@ -51,13 +49,12 @@ if ( isset($_POST['type'], $_POST['status'], $_POST['id']) && !empty($_POST['typ
 						$result = $mysqli->query($query);
 
 						// If result returns false, run the function query_error do show debugging info
-						if (!$result) {
-							query_error($query, __LINE__, __FILE__);
-						}
+						if (!$result) query_error($query, __LINE__, __FILE__);
 					}
 				} // Close: if ( $result->num_rows == 1)
 			} // Close: if ($_POST['id'] != $_SESSION['user']['id'])
 			break;
+
 		// If the value is page-protected, do this (defined in the toggles attribute data-type)
 		case 'page-protected':
 
@@ -80,14 +77,14 @@ if ( isset($_POST['type'], $_POST['status'], $_POST['id']) && !empty($_POST['typ
 					$result = $mysqli->query($query);
 
 				// If result returns false, run the function query_error do show debugging info
-				if (!$result) {
-					query_error($query, __LINE__, __FILE__);
-				}
+				if (!$result) query_error($query, __LINE__, __FILE__);
 			}
-		break;
+			break;
+
 		// If the value is page-status, do this (defined in the toggles attribute data-type)
 		case 'page-status':
-			if ($_SESSION['user']['access_level'] >= 100)
+			// If the current users access level is equal og greater than the required access level for pages, update status
+			if ($_SESSION['user']['access_level'] >= $view_files['pages']['required_access_lvl'])
 			{
 				// Secure the value from id is int
 				$id = intval($_POST['id']);
@@ -103,9 +100,7 @@ if ( isset($_POST['type'], $_POST['status'], $_POST['id']) && !empty($_POST['typ
 				$result_page = $mysqli->query($query);
 
 				// If result returns false, use the function query_error to show debugging info
-				if (!$result_page) {
-					query_error($query, __LINE__, __FILE__);
-				}
+				if (!$result_page) query_error($query, __LINE__, __FILE__);
 
 				// Return the information from the Database as an object
 				$row = $result_page->fetch_object();
@@ -119,18 +114,43 @@ if ( isset($_POST['type'], $_POST['status'], $_POST['id']) && !empty($_POST['typ
 					// Update status for toggled user
 					$query =
 						"UPDATE 
-						pages 
-					SET 
-						page_status = $status 
-					WHERE 
-						page_id = $id";
+							pages 
+						SET 
+							page_status = $status 
+						WHERE 
+							page_id = $id";
 					$result = $mysqli->query($query);
 
 					// If result returns false, run the function query_error do show debugging info
-					if (!$result) {
-						query_error($query, __LINE__, __FILE__);
-					}
+					if (!$result) query_error($query, __LINE__, __FILE__);
 				}
+			}
+			break;
+
+		// If the value is page-protected, do this (defined in the toggles attribute data-type)
+		case 'menu-status':
+
+			// If the current users access level is equal og greater than the required access level for menus, update status
+			if ( $_SESSION['user']['access_level'] >= $view_files['menus']['required_access_lvl'] )
+			{
+				// Secure the value from id is int
+				$id = intval($_POST['id']);
+
+				// If status is true, save 1 to $status, or save 0
+				$status = $_POST['status'] == 'true' ? 1 : 0;
+
+				// Update status for toggled user
+				$query =
+					"UPDATE 
+						menus 
+					SET 
+						menu_status = $status 
+					WHERE 
+						menu_id = $id";
+				$result = $mysqli->query($query);
+
+				// If result returns false, run the function query_error do show debugging info
+				if (!$result) query_error($query, __LINE__, __FILE__);
 			}
 			break;
 	}

@@ -77,7 +77,7 @@ else
 			if (!$result) query_error($query, __LINE__, __FILE__);
 
 			// Opret delete event i logbogen.
-			create_event('delete', 'af inholdet ' . ($row->page_content_type == 1 ? $row->page_content_description : $row->page_function_description) . ' på ' . $row->page_title, $view_files[$view_file]['required_access_lvl']);
+			create_event('delete', 'af indholdet ' . ($row->page_content_type == 1 ? $row->page_content_description : $row->page_function_description) . ' på ' . $row->page_title, $view_files[$view_file]['required_access_lvl']);
 		}
 	}
 

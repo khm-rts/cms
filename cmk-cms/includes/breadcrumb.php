@@ -84,13 +84,13 @@ else
 
 				case 'menu-link-create':
 					echo '<li><a href="index.php?page=menus" data-page="menus">' . $view_files['menus']['icon'] . $view_files['menus']['title'] . '</a></li>';
-					echo '<li><a href="index.php?page=menu-links&menu-id=1" data-page="menu-links" data-params="menu-id=1">' . $view_files['menu-links']['icon'] . $view_files['menu-links']['title'] . '</a></li>';
+					echo '<li><a href="index.php?page=menu-links&menu-id=' . $_GET['menu-id'] .'" data-page="menu-links" data-params="menu-id=' . $_GET['menu-id'] .'">' . $view_files['menu-links']['icon'] . $view_files['menu-links']['title'] . '</a></li>';
 					echo '<li class="active">' . $icons['create'] . CREATE_ITEM . '</li>';
 					break;
 
 				case 'menu-link-edit':
 					echo '<li><a href="index.php?page=menus" data-page="menus">' . $view_files['menus']['icon'] . $view_files['menus']['title'] . '</a></li>';
-					echo '<li><a href="index.php?page=menu-links&menu-id=1" data-page="menu-links" data-params="menu-id=1">' . $view_files['menu-links']['icon'] . $view_files['menu-links']['title'] . '</a></li>';
+					echo '<li><a href="index.php?page=menu-links&menu-id=' . $_GET['menu-id'] .'" data-page="menu-links" data-params="menu-id=' . $_GET['menu-id'] .'">' . $view_files['menu-links']['icon'] . $view_files['menu-links']['title'] . '</a></li>';
 					echo '<li class="active">' . $icons['edit'] . EDIT_ITEM . '</li>';
 					break;
 

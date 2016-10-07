@@ -1,15 +1,21 @@
 <?php
+// If view_files is not defined, the page is not included in ../index.php, so it's missing config.php and updated $view_file with current_page
 if ( !isset($view_files) )
 {
 	require '../config.php';
+	$root			= '../';
+	$include_path	= $root . $include_path;
+	$view_file 		= 'menus';
 }
+
+page_access($view_file);
 ?>
 
 <div class="page-title">
 	<span class="title">
 		<?php
 		// Get icon and title from Array $files, defined in config.php
-		echo $view_files['menus']['icon'] . ' ' . $view_files['menus']['title']
+		echo $view_files[$view_file]['icon'] . ' ' . $view_files[$view_file]['title']
 		?>
 	</span>
 </div>
@@ -37,25 +43,39 @@ if ( !isset($view_files) )
 				</thead>
 
 				<tbody>
-				<tr>
-					<td>Main</td>
-					<td>Hovedmenu på hjemmesiden</td>
+				<?php
+				$query	=
+					"SELECT 
+						*
+					FROM 
+						menus 
+					ORDER BY 
+						menu_name";
+				$result	= $mysqli->query($query);
 
-					<!-- LINK TIL SIDEINDHOLD -->
-					<td class="icon">
-						<a href="index.php?page=menu-links&menu-id=1" title="<?php echo $view_files['menu-links']['title'] ?>" data-page="menu-links" data-params="menu-id=1"><?php echo $view_files['menu-links']['icon'] ?></a>
-					</td>
-				</tr>
+				// If result returns false, use the function query_error to show debugging info
+				if (!$result) query_error($query, __LINE__, __FILE__);
 
-				<tr>
-					<td>Footer</td>
-					<td>Menu i bunden af hjemmesiden</td>
+				while( $row = $result->fetch_object() )
+				{
+					?>
+					<tr>
+						<td><?php echo $row->menu_name ?></td>
+						<td><?php echo $row->menu_description ?></td>
 
-					<!-- LINK TIL SIDEINDHOLD -->
-					<td class="icon">
-						<a href="index.php?page=menu-links&menu-id=2" title="<?php echo $view_files['menu-links']['title'] ?>" data-page="menu-links" data-params="menu-id=2"><?php echo $view_files['menu-links']['icon'] ?></a>
-					</td>
-				</tr>
+						<!-- LINK TIL SIDEINDHOLD -->
+						<td class="icon">
+							<a href="index.php?page=menu-links&menu-id=<?php echo $row->menu_id ?>" title="<?php echo $view_files['menu-links']['title'] ?>" data-page="menu-links" data-params="menu-id=<?php echo $row->menu_id ?>"><?php echo $view_files['menu-links']['icon'] ?></a>
+						</td>
+
+						<!-- TOGGLE TIL AKTIVER/DEAKTIVER ELEMENT -->
+						<td class="toggle">
+							<input type="checkbox" class="toggle-checkbox" id="<?php echo $row->menu_id ?>" data-type="menu-status" <?php if ($row->menu_status == 1) {  echo 'checked'; } ?>>
+						</td>
+					</tr>
+					<?php
+				}
+				?>
 				</tbody>
 			</table>
 		</div><!-- /.table-responsive -->

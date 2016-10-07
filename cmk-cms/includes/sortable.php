@@ -24,10 +24,29 @@ if ( isset($_POST['type'], $_POST['section'], $_POST['data']) && !empty($_POST['
 				$result = $mysqli->query($query);
 
 				// If result returns false, run the function query_error do show debugging info
-				if (!$result)
-				{
-					query_error($query, __LINE__, __FILE__);
-				}
+				if (!$result) query_error($query, __LINE__, __FILE__);
+			}
+			break;
+
+		// If the value is menu-links, do this (defined in the tbody attribute data-type)
+		case 'menu-links':
+
+			foreach($_POST['data'] as $order => $page_content)
+			{
+				$order	= intval($order) + 1;
+				$id		= intval($page_content['id']);
+
+				$query	=
+					"UPDATE 
+						menu_links 
+					SET 
+						menu_link_order = $order 
+					WHERE 
+						menu_link_id = $id";
+				$result = $mysqli->query($query);
+
+				// If result returns false, run the function query_error do show debugging info
+				if (!$result) query_error($query, __LINE__, __FILE__);
 			}
 			break;
 	}
