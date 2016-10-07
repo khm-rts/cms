@@ -3,7 +3,9 @@
 if ( !isset($view_files) )
 {
 	require '../config.php';
-	$view_file = 'users';
+	$root			= '../';
+	$include_path	= $root . $include_path;
+	$view_file		= 'users';
 }
 
 page_access($view_file);
@@ -103,10 +105,7 @@ if ( isset($_GET['delete'], $_GET['id']) && !empty($_GET['id']) && $_GET['id'] !
 	$result = $mysqli->query($query);
 
 	// If result returns false, use the function query_error to show debugging info
-	if (!$result)
-	{
-		query_error($query, __LINE__, __FILE__);
-	}
+	if (!$result) query_error($query, __LINE__, __FILE__);
 
 	// Delete the selected user if found
 	if ( $result->num_rows == 1)
@@ -125,12 +124,10 @@ if ( isset($_GET['delete'], $_GET['id']) && !empty($_GET['id']) && $_GET['id'] !
 				$result = $mysqli->query($query);
 
 			// If result returns false, use the function query_error to show debugging info
-			if (!$result)
-			{
-				query_error($query, __LINE__, __FILE__);
-			}
+			if (!$result) query_error($query, __LINE__, __FILE__);
 
-			create_event('delete', 'af brugeren ' . $row->user_name, 100);
+			// Use function to insert event in log
+			create_event('delete', 'af brugeren ' . $row->user_name, $view_files[$view_file]['required_access_lvl']);
 		}
 	}
 }
@@ -247,6 +244,9 @@ if ( isset($_GET['delete'], $_GET['id']) && !empty($_GET['id']) && $_GET['id'] !
 						1=1 $search_sql $access_level_sql";
 				$result	= $mysqli->query($query);
 
+				// If result returns false, use the function query_error to show debugging info
+				if (!$result) query_error($query, __LINE__, __FILE__);
+
 				$items_total = $result->num_rows;
 
 				$offset = ($page_no - 1) * $page_length;
@@ -262,14 +262,12 @@ if ( isset($_GET['delete'], $_GET['id']) && !empty($_GET['id']) && $_GET['id'] !
 
 				$result	= $mysqli->query($query);
 
+				// If result returns false, use the function query_error to show debugging info
+				if (!$result) query_error($query, __LINE__, __FILE__);
+
 				$items_current_total = $result->num_rows;
 
 				prettyprint($query);
-
-				if (!$result)
-				{
-					query_error($query, __LINE__, __FILE__);
-				}
 
 				while( $row = $result->fetch_object() )
 				{

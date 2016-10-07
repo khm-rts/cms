@@ -9,12 +9,12 @@
 <div id="1"<?php if ($content_type == 2) { echo ' style="display: none"'; } ?>>
 	<div class="form-group">
 		<label for="description"><?php echo DESCRIPTION ?>:</label>
-		<input type="text" name="description" id="description" class="form-control" required maxlength="255" value="<?php echo $description_tmp ?>">
+		<input type="text" name="description" id="description" class="form-control" <?php if ($content_type == 1) { echo 'required'; } ?> maxlength="255" value="<?php echo $description_tmp ?>">
 	</div>
 
 	<div class="form-group">
 		<label for="content"><?php echo CONTENT ?>:</label>
-		<textarea name="content" id="content"></textarea>
+		<textarea name="content" id="content"><?php echo $content_tmp ?></textarea>
 		<script>
 			CKEDITOR.replace('content', {
 				toolbar: 'Full'
@@ -25,9 +25,29 @@
 
 <div class="form-group" id="2"<?php if ($content_type == 1) { echo ' style="display: none"'; } ?>>
 	<label for="page_function"><?php echo PAGE_FUNCTION ?>:</label>
-	<select class="form-control" name="page_function" id="page_function">
-		<option value="1">Blog: Oversigt over indlæg</option>
-		<option value="2">Kontaktformular</option>
+	<select class="form-control" name="page_function" id="page_function" <?php if ($content_type == 2) { echo 'required'; } ?>>
+		<?php
+		// Get page functions from the database
+		$query =
+			"SELECT 
+				page_function_id, page_function_description 
+			FROM 
+				page_functions 
+			ORDER BY 
+				page_function_description";
+		$result = $mysqli->query($query);
+
+		// If result returns false, use the function query_error to show debugging info
+		if (!$result) query_error($query, __LINE__, __FILE__);
+
+		while( $row = $result->fetch_object() )
+		{
+			// If current value in $page_function_tmp matches the row from the database, add selected to the variable $selected
+			$selected = $page_function_tmp == $row->page_function_id ? ' selected' : '';
+
+			echo '<option value="' . $row->page_function_id . '"' . $selected . '>' . $row->page_function_description . '</option>';
+		}
+		?>
 	</select>
 </div>
 

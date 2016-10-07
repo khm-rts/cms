@@ -50,10 +50,7 @@
 		$result = $mysqli->query($query);
 
 		// If result returns false, use the function query_error to show debugging info
-		if (!$result)
-		{
-			query_error($query, __LINE__, __FILE__);
-		}
+		if (!$result) query_error($query, __LINE__, __FILE__);
 
 		// Do while-loop to create option for each row in the database
 		while( $row = $result->fetch_object() )

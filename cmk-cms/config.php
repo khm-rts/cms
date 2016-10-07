@@ -18,12 +18,13 @@ else
 	error_reporting(0);
 }
 
+// Include language file with all text for the CMS
 require 'lang/da_DK.php';
 require $include_path . 'functions.php';
 
+// If user is logged in, use functions to match fingerprint and last activity and log the user out if one of them return false
 if ( isset($_SESSION['user']['id']) )
 {
-	// If page isn't reloaded, the securty functions wasn't run on index.php, so run them here
 	check_fingerprint();
 	check_last_activity();
 }

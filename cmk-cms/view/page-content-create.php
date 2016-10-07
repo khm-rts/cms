@@ -1,4 +1,5 @@
 <?php
+// If view_files is not defined, the page is not included in ../index.php, so it's missing config.php and updated $view_file with current_page
 if ( !isset($view_files) )
 {
 	require '../config.php';
@@ -25,7 +26,7 @@ else
 	<span class="title">
 		<?php
 		// Get icon and title from Array $files, defined in config.php
-		echo $view_files['page-content-create']['icon'] . ' ' . $view_files['page-content-create']['title']
+		echo $view_files[$view_file]['icon'] . ' ' . $view_files[$view_file]['title']
 		?>
 	</span>
 	</div>
@@ -41,7 +42,7 @@ else
 			<form method="post" data-page="<?php echo $view_file ?>" data-params="page-id=<?php echo $page_id ?>">
 				<?php
 				// Save variables with empty values, to be used in the forms input values
-				$content_type = $description_tmp = $content_tmp = $page_function = $layout = '';
+				$content_type = $description_tmp = $content_tmp = $page_function_tmp = $layout = '';
 
 				// If the form has been submitted
 				if ( isset($_POST['save_item']) )
@@ -53,13 +54,19 @@ else
 					$content_tmp 		= $_POST['content'];
 					$page_function_tmp	= $_POST['page_function'];
 
+
+					// If no content type is selected, show alert
+					if ( empty($_POST['content_type']) )
+					{
+						alert('warning', REQUIRED_FIELDS_EMPTY);
+					}
 					// If content type is 1 and one of the required fields is empty, show alert
-					if ( $content_type == 1 && ( empty($_POST['content_type']) || empty($_POST['layout']) || empty($_POST['description']) || empty($_POST['content']) ) )
+					else if ( $content_type == 1 && ( empty($_POST['description']) || empty($_POST['content']) || empty($_POST['layout']) ) )
 					{
 						alert('warning', REQUIRED_FIELDS_EMPTY);
 					}
 					// If content type is 2 and one of the required fields is empty, show alert
-					else if ( $content_type == 2 && ( empty($_POST['content_type']) || empty($_POST['layout']) || empty($_POST['layout']) ) )
+					else if ( $content_type == 2 && ( empty($_POST['page_function']) || empty($_POST['layout']) ) )
 					{
 						alert('warning', REQUIRED_FIELDS_EMPTY);
 					}
@@ -113,10 +120,12 @@ else
 						// Get the newly created page content id
 						$page_content_id = $mysqli->insert_id;
 
+						// If content type is 1, use the posted description
 						if ($content_type == 1)
 						{
 							$content_description = $description;
 						}
+						// If content type is 2, use the description from the page function
 						else
 						{
 							// Get the description for the page function
@@ -154,6 +163,7 @@ else
 						// Use function to insert event in log
 						create_event('create', 'af indholdet <a href="index.php?page=page-content-edit&page-id=' . $page_id . '&id= ' . $page_content_id . '" data-page="page-content-edit" data-params="page-id=' . $page_id . '&id= ' . $page_content_id . '">' . $content_description . '</a> på siden <a href="index.php?page=page-edit&id=' . $page_id . '" data-page="page-edit" data-params="id='. $page_id . '">' . $row->page_title . '</a>', $view_files[$view_file]['required_access_lvl']);
 
+						// Use function to insert event in log
 						alert('success', ITEM_CREATED . ' <a href="index.php?page=page-content&page-id=' . $page_id . '" data-page="page-content" data-params="page-id='. $page_id .'">' . RETURN_TO_OVERVIEW . '</a>');
 
 					} // Closes: ( empty($_POST['title']) || empty($_POST['url_key'])...

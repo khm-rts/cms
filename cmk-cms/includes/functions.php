@@ -89,10 +89,11 @@ function prettyprint($data)
 }
 
 /**
+ * @param string $page: The name of the file in view/ the links in the pagination should refer to
  * @param int $page_no: current page no
  * @param int $items_total: the counted total amount of items
  * @param int $page_length: the desired amount of items per page
- * @param int $page_around: The desired amount of pages to skip before and after the current page
+ * @param int $page_around: The desired amount of pages to show before and after the current page
  * @param bool $show_disabled_arrows: Show disabled next or previous links, or hide them
  */
 function pagination($page, $page_no, $items_total, $page_length, $page_around = 2, $show_disabled_arrows = true)
@@ -144,7 +145,7 @@ function pagination($page, $page_no, $items_total, $page_length, $page_around = 
 			echo '<li class="disabled"><span>&hellip;</span></li>';
 		}
 
-		// Do for-loop, start from number in page_from, and end with the number in page_to, increment with one each loop
+		// Do for-loop, start from number in page_from, and end with the number in page_to, increment with one each time the loop runs
 		for($i = $page_from; $i <= $page_to; $i++)
 		{
 			echo '<li' . ($page_no == $i ? ' class="active"' : '') . '><a href="index.php?page=' . $page . '&page-no=' . $i . '" data-page="' . $page . '" data-params="page-no=' . $i . '">' . $i . '</a></li>';

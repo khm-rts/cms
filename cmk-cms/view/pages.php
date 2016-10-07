@@ -3,7 +3,9 @@
 if ( !isset($view_files) )
 {
 	require '../config.php';
-	$view_file = 'pages';
+	$root			= '../';
+	$include_path	= $root . $include_path;
+	$view_file 		= 'pages';
 }
 
 page_access($view_file);
@@ -97,10 +99,7 @@ if ( isset($_GET['delete'], $_GET['id']) && !empty($_GET['id']) )
 	$result = $mysqli->query($query);
 
 	// If result returns false, use the function query_error to show debugging info
-	if (!$result)
-	{
-		query_error($query, __LINE__, __FILE__);
-	}
+	if (!$result) query_error($query, __LINE__, __FILE__);
 
 	// Delete the selected page if found
 	if ( $result->num_rows == 1)
@@ -119,11 +118,9 @@ if ( isset($_GET['delete'], $_GET['id']) && !empty($_GET['id']) )
 			$result = $mysqli->query($query);
 
 			// If result returns false, use the function query_error to show debugging info
-			if (!$result)
-			{
-				query_error($query, __LINE__, __FILE__);
-			}
+			if (!$result) query_error($query, __LINE__, __FILE__);
 
+			// Use function to insert event in log
 			create_event('delete', 'af siden ' . $row->page_title, $view_files[$view_file]['required_access_lvl']);
 		}
 	}
@@ -135,7 +132,7 @@ if ( isset($_GET['delete'], $_GET['id']) && !empty($_GET['id']) )
 	<span class="title">
 		<?php
 		// Get icon and title from Array $files, defined in config.php
-		echo $view_files['pages']['icon'] . ' ' . $view_files['pages']['title']
+		echo $view_files[$view_file]['icon'] . ' ' . $view_files[$view_file]['title']
 		?>
 	</span>
 </div>
@@ -232,6 +229,9 @@ if ( isset($_GET['delete'], $_GET['id']) && !empty($_GET['id']) )
 						pages $search_sql";
 				$result	= $mysqli->query($query);
 
+				// If result returns false, use the function query_error to show debugging info
+				if (!$result) query_error($query, __LINE__, __FILE__);
+
 				$items_total = $result->num_rows;
 
 				$offset = ($page_no - 1) * $page_length;
@@ -247,14 +247,12 @@ if ( isset($_GET['delete'], $_GET['id']) && !empty($_GET['id']) )
 
 				$result	= $mysqli->query($query);
 
+				// If result returns false, use the function query_error to show debugging info
+				if (!$result) query_error($query, __LINE__, __FILE__);
+
 				$items_current_total = $result->num_rows;
 
 				prettyprint($query);
-
-				if (!$result)
-				{
-					query_error($query, __LINE__, __FILE__);
-				}
 
 				while( $row = $result->fetch_object() )
 				{

@@ -1,8 +1,11 @@
 <?php
+// If view_files is not defined, the page is not included in ../index.php, so it's missing config.php and updated $view_file with current_page
 if ( !isset($view_files) )
 {
 	require '../config.php';
-	$view_file = 'page-content';
+	$root			= '../';
+	$include_path	= $root . $include_path;
+	$view_file		= 'page-content';
 }
 
 page_access($view_file);
@@ -89,10 +92,7 @@ else
 	$result = $mysqli->query($query);
 
 	// If result returns false, use the function query_error to show debugging info
-	if (!$result)
-	{
-		query_error($query, __LINE__, __FILE__);
-	}
+	if (!$result) query_error($query, __LINE__, __FILE__);
 
 	// Return the information from the Database as an object
 	$row	= $result->fetch_object();
@@ -147,13 +147,10 @@ else
 							page_content_order";
 					$result	= $mysqli->query($query);
 
-					prettyprint($query);
-
 					// If result returns false, run the function query_error do show debugging info
-					if (!$result)
-					{
-						query_error($query, __LINE__, __FILE__);
-					}
+					if (!$result) query_error($query, __LINE__, __FILE__);
+
+					prettyprint($query);
 
 					while( $row = $result->fetch_object() )
 					{

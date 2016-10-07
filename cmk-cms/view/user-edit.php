@@ -1,4 +1,5 @@
 <?php
+// If view_files is not defined, the page is not included in ../index.php, so it's missing config.php and updated $view_file with current_page
 if ( !isset($view_files) )
 {
 	require '../config.php';
@@ -13,7 +14,7 @@ page_access($view_file);
 	<span class="title">
 		<?php
 		// Get icon and title from Array $files, defined in config.php
-		echo $view_files['user-edit']['icon'] . ' ' . $view_files['user-edit']['title']
+		echo $view_files[$view_file]['icon'] . ' ' . $view_files[$view_file]['title']
 		?>
 	</span>
 </div>
@@ -26,7 +27,7 @@ page_access($view_file);
 	</div>
 
 	<div class="card-body">
-		<form method="post" data-page="user-edit" data-params="id=<?php echo $_GET['id'] ?>">
+		<form method="post" data-page="<?php echo $view_file ?>" data-params="id=<?php echo $_GET['id'] ?>">
 			<?php
 			if ( isset($_GET['id']) && !empty($_GET['id']) )
 			{
@@ -51,10 +52,7 @@ page_access($view_file);
 			$result = $mysqli->query($query);
 
 			// If result returns false, use the function query_error to show debugging info
-			if (!$result)
-			{
-				query_error($query, __LINE__, __FILE__);
-			}
+			if (!$result) query_error($query, __LINE__, __FILE__);
 
 			// Return the information from the Database as an object
 			$row	= $result->fetch_object();
@@ -92,10 +90,7 @@ page_access($view_file);
 						$result = $mysqli->query($query);
 
 						// If result returns false, use the function query_error to show debugging info
-						if (!$result)
-						{
-							query_error($query, __LINE__, __FILE__);
-						}
+						if (!$result) query_error($query, __LINE__, __FILE__);
 
 						$role	= $result->fetch_object();
 
@@ -128,10 +123,7 @@ page_access($view_file);
 						$result = $mysqli->query($query);
 
 						// If result returns false, use the function query_error to show debugging info
-						if (!$result)
-						{
-							query_error($query, __LINE__, __FILE__);
-						}
+						if (!$result) query_error($query, __LINE__, __FILE__);
 
 						// If any rows was found, the email is not available, so show alert
 						if ($result->num_rows > 0)
@@ -166,16 +158,13 @@ page_access($view_file);
 										user_name = '$name', user_email = '$email' $role_sql $password_sql
 									WHERE 
 										user_id = $id";
-									$result = $mysqli->query($query);
+								$result = $mysqli->query($query);
 
 								// If result returns false, use the function query_error to show debugging info
-								if (!$result)
-								{
-									query_error($query, __LINE__, __FILE__);
-								}
+								if (!$result) query_error($query, __LINE__, __FILE__);
 
 								// Use function to insert event in log
-								create_event('update', 'af brugeren <a href="index.php?page=user-edit&id=' . $id . '" data-page="user-edit" data-params="id='. $id . '">' . $name . '</a>', 100);
+								create_event('update', 'af brugeren <a href="index.php?page=user-edit&id=' . $id . '" data-page="user-edit" data-params="id='. $id . '">' . $name . '</a>', $view_files[$view_file]['required_access_lvl']);
 
 								alert('success', ITEM_UPDATED . ' <a href="index.php?page=users" data-page="users">' . RETURN_TO_OVERVIEW . '</a>');
 							}
