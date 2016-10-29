@@ -31,15 +31,19 @@ page_access($view_file);
 		<form method="post" data-page="<?php echo $view_file ?>">
 			<?php
 			// Save variables with empty values, to be used in the forms input values
-			$name = $email = $role_id = $password_required_label = '';
+			$name = $email = $role_id = $password_required_label = $phone_tmp = $address_tmp = $zip_tmp = $city_tmp = '';
 			$password_required = 'required';
 
 			// If the form has been submitted
 			if ( isset($_POST['save_item']) )
 			{
 				// Escape inputs and save values to variables defined before with empty value
-				$name	= $mysqli->escape_string($_POST['name']);
-				$email	= $mysqli->escape_string($_POST['email']);
+				$name			= $mysqli->escape_string($_POST['name']);
+				$email			= $mysqli->escape_string($_POST['email']);
+				$phone_tmp		= $_POST['phone'];
+				$address_tmp	= $_POST['address'];
+				$zip_tmp		= $_POST['zip'];
+				$city_tmp		= $_POST['city'];
 
 				// If one of the required fields is empty, show alert
 				if ( empty($_POST['name']) || empty($_POST['email']) || empty($_POST['password']) || empty($_POST['confirm_password']) || empty($_POST['role']) )
@@ -96,19 +100,26 @@ page_access($view_file);
 							$role	= $result->fetch_object();
 
 							// If selected role's access level higher or equal to the current users access level and the current user is not super admin, owerwrite the selected role_id with the default value (role_id for 'User')
-							if ($role->role_access_level >= $_SESSION['user']['access_level'] && $_SESSION['user']['access_level'] != 1000)
-							{
-								$role_id = 4;
-							}
+							if ($role->role_access_level >= $_SESSION['user']['access_level'] && $_SESSION['user']['access_level'] != 1000) $role_id = 4;
 
 							// Use password_hash with the algorithm from the predefined constant PASSWORD_DEFAULT, and default cost
 							$password_hash = password_hash($_POST['password'], PASSWORD_DEFAULT);
 
+							// If fields phone, address, zip or city is empty, save NULL value to the variables $phone, $address, $zip and $city. If fields is not empty escape the values from the form and add single quotes
+							$phone		= empty($_POST['phone'])	? 'NULL' : "'" . $mysqli->escape_string($_POST['phone']) . "'";
+
+							$address	= empty($_POST['address'])	? 'NULL' : "'" . $mysqli->escape_string($_POST['address']) . "'";
+
+							$zip		= empty($_POST['zip'])		? 'NULL' : "'" . $mysqli->escape_string($_POST['zip']) . "'";
+
+							$city		= empty($_POST['city'])		? 'NULL' : "'" . $mysqli->escape_string($_POST['city']) . "'";
+
 							// Insert the user to the database
 							$query =
 								"INSERT INTO 
-									users (user_name, user_email, user_password, fk_role_id) 
-								VALUES ('$name', '$email', '$password_hash', $role_id)";
+									users (user_name, user_email, user_password, user_phone, user_address, user_zip, user_city, fk_role_id) 
+								VALUES 
+									('$name', '$email', '$password_hash', $phone, $address, $zip, $city, $role_id)";
 							$result = $mysqli->query($query);
 
 							// If result returns false, use the function query_error to show debugging info
@@ -133,4 +144,4 @@ page_access($view_file);
 </div>
 
 <?php
-if (DEVELOPER_STATUS) { show_developer_info(); }
+show_developer_info();

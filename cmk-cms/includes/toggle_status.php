@@ -127,30 +127,53 @@ if ( isset($_POST['type'], $_POST['status'], $_POST['id']) && !empty($_POST['typ
 			}
 			break;
 
-		// If the value is page-protected, do this (defined in the toggles attribute data-type)
-		case 'menu-status':
-
-			// If the current users access level is equal og greater than the required access level for menus, update status
-			if ( $_SESSION['user']['access_level'] >= $view_files['menus']['required_access_lvl'] )
+		// If the value is page-status, do this (defined in the toggles attribute data-type)
+		case 'posts':
+			// If the current users access level is equal og greater than the required access level for posts, update status
+			if ($_SESSION['user']['access_level'] >= $view_files['posts']['required_access_lvl'])
 			{
 				// Secure the value from id is int
 				$id = intval($_POST['id']);
 
-				// If status is true, save 1 to $status, or save 0
-				$status = $_POST['status'] == 'true' ? 1 : 0;
-
-				// Update status for toggled user
-				$query =
-					"UPDATE 
-						menus 
-					SET 
-						menu_status = $status 
+				// Get the post from the Database with info for the user who created the post
+				$query	=
+					"SELECT 
+						post_title, user_id, role_access_level
+					FROM 
+						posts 
+					INNER JOIN
+						users ON posts.fk_user_id = users.user_id
+					INNER JOIN
+						roles ON users.fk_role_id = roles.role_id
 					WHERE 
-						menu_id = $id";
-				$result = $mysqli->query($query);
+						post_id = $id";
+				$result_page = $mysqli->query($query);
 
-				// If result returns false, run the function query_error do show debugging info
-				if (!$result) query_error($query, __LINE__, __FILE__);
+				// If result returns false, use the function query_error to show debugging info
+				if (!$result_page) query_error($query, __LINE__, __FILE__);
+
+				// Return the information from the Database as an object
+				$row = $result_page->fetch_object();
+
+				// Only toggle status on the current post if it's the users own post or the creators access level is below the current users or current user is super admin
+				if ($row->user_id == $_SESSION['user']['id'] || $row->role_access_level < $_SESSION['user']['access_level'] || is_super_admin() )
+				{
+					// If status is true, save 1 to $status, or save 0
+					$status = $_POST['status'] == 'true' ? 1 : 0;
+
+					// Update status for toggled user
+					$query =
+						"UPDATE 
+							posts 
+						SET 
+							post_status = $status 
+						WHERE 
+							post_id = $id";
+					$result = $mysqli->query($query);
+
+					// If result returns false, run the function query_error do show debugging info
+					if (!$result) query_error($query, __LINE__, __FILE__);
+				}
 			}
 			break;
 	}

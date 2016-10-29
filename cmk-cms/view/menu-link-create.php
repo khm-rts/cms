@@ -1,38 +1,72 @@
 <?php
+// If view_files is not defined, the page is not included in ../index.php, so it's missing config.php and updated $view_file with current_page
 if ( !isset($view_files) )
 {
 	require '../config.php';
-	$include_path = '../' . $include_path;
+	$root			= '../';
+	$include_path	= $root . $include_path;
+	$view_file		= 'menu-link-create';
 }
-?>
 
-<div class="page-title">
+page_access($view_file);
+
+// If menu-id is not defined in URL params, or the value is empty, show alert
+if ( !isset($_GET['menu-id']) || empty($_GET['menu-id']) )
+{
+	alert('danger', NO_ITEM_SELECTED);
+}
+// If menu-id is defined, continue
+else
+{
+	// Get the selected menu id from the URL param
+	$menu_id = intval($_GET['menu-id']);
+
+	?>
+	<div class="page-title">
 	<span class="title">
 		<?php
 		// Get icon and title from Array $files, defined in config.php
-		echo $view_files['menu-link-create']['icon'] . ' ' . $view_files['menu-link-create']['title']
+		echo $view_files[$view_file]['icon'] . ' ' . $view_files[$view_file]['title']
 		?>
 	</span>
-</div>
+	</div>
 
-<div class="card">
-	<div class="card-header">
-		<div class="card-title">
-			<div class="title"><?php echo CREATE_ITEM ?></div>
+	<div class="card">
+		<div class="card-header">
+			<div class="card-title">
+				<div class="title"><?php echo CREATE_ITEM ?></div>
+			</div>
+		</div>
+
+		<div class="card-body">
+			<form method="post" data-page="menu-link-create" data-params="menu-id=<?php echo $menu_id ?>">
+				<?php
+				// Save variables with empty values, to be used in the forms input values
+				$name = $page = $post_tmp = $bookmark_tmp = '';
+				$menus = [$menu_id];
+				$link_type = 1;
+
+				// If the form has been submitted
+				if ( isset($_POST['save_item']) )
+				{
+					// Escape inputs and save values to variables defined before with empty value
+					$menus				= isset($_POST['menus']) ? $_POST['menus'] : [];
+					$name				= $mysqli->escape_string($_POST['name']);
+					$bookmark_tmp 		= $_POST['bookmark'];
+					$link_type			= intval($_POST['link_type']);
+					$page				= intval($_POST['page']);
+					$post_tmp			= $_POST['post'];
+
+					create_menu_link($menus, $name, $page, $link_type, $bookmark_tmp, $post_tmp);
+
+				} // Closes: if ( isset($_POST['save_item']) )
+
+				include $include_path . 'form-menu-link.php'
+				?>
+			</form>
 		</div>
 	</div>
+	<?php
+}
 
-	<div class="card-body">
-		<form method="post" data-page="menu-link-create">
-			<div class="alert alert-success alert-dismissible" role="alert">
-				<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-				<?php echo ITEM_CREATED ?> <a href="index.php?page=menu-links&menu-id=1" data-page="menu-links" data-params="menu-id=1"><?php echo RETURN_TO_OVERVIEW ?></a>
-			</div>
-
-			<?php include $include_path . 'form-menu-link.php' ?>
-		</form>
-	</div>
-</div>
-
-<?php
-if (DEVELOPER_STATUS) { show_developer_info(); }
+show_developer_info();

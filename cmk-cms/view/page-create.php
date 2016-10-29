@@ -31,8 +31,9 @@ page_access($view_file);
 		<form method="post" data-page="<?php echo $view_file ?>">
 			<?php
 			// Save variables with empty values, to be used in the forms input values
-			$title = $url_key = $meta_description_tmp = '';
+			$title = $url_key = $meta_description_tmp = $link_name = '';
 			$meta_robots = 'index, follow';
+			$menus = [];
 
 			// If the form has been submitted
 			if ( isset($_POST['save_item']) )
@@ -42,10 +43,11 @@ page_access($view_file);
 				$url_key				= $mysqli->escape_string($_POST['url_key']);
 				$meta_robots			= $mysqli->escape_string($_POST['meta_robots']);
 				$meta_description_tmp	= $_POST['meta_description'];
-
+				$menus					= isset($_POST['menus']) ? $_POST['menus'] : [];
+				$link_name				= $mysqli->escape_string($_POST['link_name']);
 
 				// If one of the required fields is empty, show alert
-				if ( empty($_POST['title']) || empty($_POST['meta_robots']) )
+				if ( empty($_POST['title']) || empty($_POST['url_key']) || empty($_POST['meta_robots']) )
 				{
 					alert('warning', REQUIRED_FIELDS_EMPTY);
 				}
@@ -65,7 +67,7 @@ page_access($view_file);
 					// If result returns false, use the function query_error to show debugging info
 					if (!$result) query_error($query, __LINE__, __FILE__);
 
-					// If any rows was found, the email is not available, so show alert
+					// If any rows was found, the url key is not available, so show alert
 					if ($result->num_rows > 0)
 					{
 						alert('warning', URL_NOT_AVAILABLE);
@@ -76,7 +78,7 @@ page_access($view_file);
 						// If meta_description is empty, save NULL value to the variable meta_description and if not escape the value from the form and add single quotes
 						$meta_description = empty($_POST['meta_description']) ? 'NULL' : "'" . $mysqli->escape_string($_POST['meta_description']) . "'";
 
-						// Insert the page to the database
+						// Insert the page into the database
 						$query =
 							"INSERT INTO 
 								pages (page_url_key, page_title, page_meta_robots, page_meta_description) 
@@ -93,6 +95,12 @@ page_access($view_file);
 						create_event('create', 'af siden <a href="index.php?page=page-edit&id=' . $page_id . '" data-page="page-edit" data-params="id='. $page_id . '">' . $title . '</a>', $view_files[$view_file]['required_access_lvl']);
 
 						alert('success', ITEM_CREATED . ' <a href="index.php?page=pages" data-page="pages">' . RETURN_TO_OVERVIEW . '</a>');
+
+						// If link_to_page is posted, create link to this page for the selected menus
+						if ( isset($_POST['link_to_page']) )
+						{
+							create_menu_link($menus, $link_name, $page_id);
+						}
 					} // Closes else to: if ($result->num_rows > 0)
 				} // Closes: ( empty($_POST['title']) || empty($_POST['url_key'])...
 			} // Closes: if ( isset($_POST['save_item']) )
@@ -104,4 +112,4 @@ page_access($view_file);
 </div>
 
 <?php
-if (DEVELOPER_STATUS) { show_developer_info(); }
+show_developer_info();

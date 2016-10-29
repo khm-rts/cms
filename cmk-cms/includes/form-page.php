@@ -38,6 +38,52 @@
 	<textarea name="meta_description" id="meta_description" class="form-control" maxlength="155"><?php echo $meta_description_tmp ?></textarea>
 </div>
 
+<div class="checkbox3 checkbox-check checkbox-light">
+	<input type="checkbox" name="link_to_page" id="link_to_page"<?php if ( count($menus) > 0 ) echo ' checked' ?>>
+	<label for="link_to_page">
+		<?php echo LINK_TO_ELEMENT ?>
+	</label>
+</div>
+
+<div id="menu_link"<?php if ( count($menus) == 0 ) echo ' style="display: none"' ?>>
+	<hr>
+	<div class="form-group">
+		<label for="menu"><?php echo MENUS ?>:</label><br>
+		<?php
+		// Get the menus from the database
+		$query =
+			"SELECT
+				menu_id, menu_name
+			FROM 
+				menus 
+			ORDER BY 
+				menu_name";
+		$result = $mysqli->query($query);
+
+		// If result returns false, use the function query_error to show debugging info
+		if (!$result) query_error($query, __LINE__, __FILE__);
+
+		while( $row = $result->fetch_object() )
+		{
+			?>
+			<div class="checkbox3 checkbox-inline checkbox-check checkbox-light">
+				<input type="checkbox" name="menus[]" id="menu-<?php echo $row->menu_id ?>" <?php echo in_array($row->menu_id, $menus) ? 'checked' : '' ?> value="<?php echo $row->menu_id ?>">
+				<label for="menu-<?php echo $row->menu_id ?>">
+					<?php echo $row->menu_name ?>
+				</label>
+			</div>
+			<?php
+		}
+		?>
+	</div>
+
+	<div class="form-group">
+		<label for="link_name"><?php echo NAME ?>:</label>
+		<input type="text" name="link_name" id="link_name" class="form-control"<?php if ( count($menus) > 0 ) echo ' required' ?> maxlength="50" value="<?php echo $link_name ?>">
+	</div>
+</div>
+
+
 <button type="submit" class="<?php echo $buttons['save'] ?>" name="save_item">
 	<?php echo $icons['save'] . ' ' .SAVE_CHANGES ?>
 </button>

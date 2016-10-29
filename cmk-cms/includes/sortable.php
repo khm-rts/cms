@@ -30,19 +30,22 @@ if ( isset($_POST['type'], $_POST['section'], $_POST['data']) && !empty($_POST['
 
 		// If the value is menu-links, do this (defined in the tbody attribute data-type)
 		case 'menu-links':
+			$section	= intval($_POST['section']);
 
 			foreach($_POST['data'] as $order => $page_content)
 			{
-				$order	= intval($order) + 1;
-				$id		= intval($page_content['id']);
+				$order		= intval($order) + 1;
+				$id			= intval($page_content['id']);
 
 				$query	=
 					"UPDATE 
-						menu_links 
+						menus_menu_links 
 					SET 
 						menu_link_order = $order 
 					WHERE 
-						menu_link_id = $id";
+						fk_menu_link_id = $id
+					AND 
+						fk_menu_id = $section";
 				$result = $mysqli->query($query);
 
 				// If result returns false, run the function query_error do show debugging info

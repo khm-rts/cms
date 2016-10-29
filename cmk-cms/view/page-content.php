@@ -76,7 +76,7 @@ else
 			// If result returns false, use the function query_error to show debugging info
 			if (!$result) query_error($query, __LINE__, __FILE__);
 
-			// Opret delete event i logbogen.
+			// Create event in logbook for this action
 			create_event('delete', 'af indholdet ' . ($row->page_content_type == 1 ? $row->page_content_description : $row->page_function_description) . ' på ' . $row->page_title, $view_files[$view_file]['required_access_lvl']);
 		}
 	}
@@ -150,7 +150,7 @@ else
 					// If result returns false, run the function query_error do show debugging info
 					if (!$result) query_error($query, __LINE__, __FILE__);
 
-					prettyprint($query);
+					// prettyprint($query);
 
 					while( $row = $result->fetch_object() )
 					{
@@ -193,4 +193,4 @@ else
 	<?php
 }
 
-if (DEVELOPER_STATUS) { show_developer_info(); }
+show_developer_info();

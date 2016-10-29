@@ -115,15 +115,43 @@ else
 
 				case 'comment-create':
 					echo '<li><a href="index.php?page=posts" data-page="posts">' . $view_files['posts']['icon'] . $view_files['posts']['title'] . '</a></li>';
-					echo '<li><a href="index.php?page=comments&post-id=1" data-page="comments" data-params="post-id=1">' . $view_files['comments']['icon'] . $view_files['comments']['title'] . '</a></li>';
+					echo '<li><a href="index.php?page=comments&post-id=' . $_GET['post-id'] . '" data-page="comments" data-params="post-id=' . $_GET['post-id'] . '">' . $view_files['comments']['icon'] . $view_files['comments']['title'] . '</a></li>';
 					echo '<li class="active">' . $icons['create'] . CREATE_ITEM . '</li>';
 					break;
 
 				case 'comment-edit':
 					echo '<li><a href="index.php?page=posts" data-page="posts">' . $view_files['posts']['icon'] . $view_files['posts']['title'] . '</a></li>';
-					echo '<li><a href="index.php?page=comments&post-id=1" data-page="comments" data-params="post-id=1">' . $view_files['comments']['icon'] . $view_files['comments']['title'] . '</a></li>';
+					echo '<li><a href="index.php?page=comments&post-id=' . $_GET['post-id'] . '" data-page="comments" data-params="post-id=' . $_GET['post-id'] . '">' . $view_files['comments']['icon'] . $view_files['comments']['title'] . '</a></li>';
 					echo '<li class="active">' . $icons['edit'] . EDIT_ITEM . '</li>';
 					break;
+
+		case 'categories':
+			echo '<li class="active">' . $view_files['categories']['icon'] . $view_files['categories']['title'] . '</li>';
+			break;
+
+			case 'category-create':
+				echo '<li><a href="index.php?page=pages" data-page="pages">' . $view_files['categories']['icon'] . $view_files['categories']['title'] . '</a></li>';
+				echo '<li class="active">' . $icons['create'] . CREATE_ITEM . '</li>';
+				break;
+
+			case 'category-edit':
+				echo '<li><a href="index.php?page=pages" data-page="pages">' . $view_files['categories']['icon'] . $view_files['categories']['title'] . '</a></li>';
+				echo '<li class="active">' . $icons['edit'] . EDIT_ITEM . '</li>';
+				break;
+
+		case 'tags':
+			echo '<li class="active">' . $view_files['categories']['icon'] . $view_files['categories']['title'] . '</li>';
+			break;
+
+			case 'tag-create':
+				echo '<li><a href="index.php?page=tags" data-page="tags">' . $view_files['tags']['icon'] . $view_files['tags']['title'] . '</a></li>';
+				echo '<li class="active">' . $icons['create'] . CREATE_ITEM . '</li>';
+				break;
+
+			case 'tag-edit':
+				echo '<li><a href="index.php?page=tags" data-page="tags">' . $view_files['tags']['icon'] . $view_files['tags']['title'] . '</a></li>';
+				echo '<li class="active">' . $icons['edit'] . EDIT_ITEM . '</li>';
+				break;
 
 		case 'events':
 			echo '<li class="active">' . $view_files['events']['icon'] . $view_files['events']['title'] . '</li>';

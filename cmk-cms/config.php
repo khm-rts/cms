@@ -39,15 +39,16 @@ $db_name	= 'cmk_cms';
 $mysqli		= new mysqli($db_host, $db_user, $db_pass, $db_name);
 
 // Check for connection error
-if ( $mysqli->connect_error )
-{
-	connect_error($mysqli->connect_errno, $mysqli->connect_error, __LINE__, __FILE__);
-}
+if ( $mysqli->connect_error ) connect_error(__LINE__, __FILE__);
+
 // Set charset from Db text to utf8
 $mysqli->set_charset('utf8');
 
 // Set the database server to danish names for date and times
-$mysqli->query("SET lc_time_names = 'da_DK';");
+$result = $mysqli->query("SET lc_time_names = 'da_DK';");
+
+// If result returns false, use the function query_error to show debugging info
+if (!$result) query_error($query, __LINE__, __FILE__);
 
 // Array with icons used in CMS
 $icons =
@@ -64,7 +65,7 @@ $icons =
 	'times'			=> '<i class="fa fa-times fa-fw" aria-hidden="true"></i>',
 	'dashboard'		=> '<i class="fa fa-dashboard fa-fw" aria-hidden="true"></i>',
 	'warning'		=> '<i class="fa fa-exclamation-triangle fa-fw" aria-hidden="true"></i>',
-	'users'			=> '<i class="fa fa fa-users fa-fw" aria-hidden="true"></i>',
+	'users'			=> '<i class="fa fa-users fa-fw" aria-hidden="true"></i>',
 	'files'			=> '<i class="fa fa-files-o fa-fw" aria-hidden="true"></i>',
 	'file-text'		=> '<i class="fa fa-file-text-o fa-fw" aria-hidden="true"></i>',
 	'puzzle'		=> '<i class="fa fa-puzzle-piece fa-fw" aria-hidden="true"></i>',
@@ -81,7 +82,9 @@ $icons =
 	'next'			=> '<i class="fa fa-angle-right fa-fw" aria-hidden="true"></i>',
 	'history'		=> '<i class="fa fa-history fa-fw" aria-hidden="true"></i>',
 	'settings'		=> '<i class="fa fa-cog fa-fw" aria-hidden="true"></i>',
-	'link'			=> '<i class="fa fa-link fa-fw" aria-hidden="true"></i>'
+	'link'			=> '<i class="fa fa-link fa-fw" aria-hidden="true"></i>',
+	'folder-open'	=> '<i class="fa fa-folder-open fa-fw" aria-hidden="true"></i>',
+	'tags'			=> '<i class="fa fa-tags fa-fw" aria-hidden="true"></i>'
 ];
 
 // Array with buttons used in CMS
@@ -209,7 +212,7 @@ $view_files =
 	[
 		'icon'	=> $icons['puzzle'],
 		'title'	=> PAGE_FUNCTIONS,
-		'nav'	=> true,
+		'nav'	=> false,
 		'required_access_lvl' => 1000
 	],
 
@@ -292,6 +295,54 @@ $view_files =
 				'nav'	=> false,
 				'required_access_lvl' => 10
 			],
+
+	'categories' =>
+	[
+		'icon'	=> $icons['folder-open'],
+		'title'	=> CATEGORIES,
+		'nav'	=> true,
+		'required_access_lvl' => 100
+	],
+
+		'category-create' =>
+		[
+			'icon'	=> $icons['folder-open'],
+			'title'	=> CATEGORIES,
+			'nav'	=> false,
+			'required_access_lvl' => 100
+		],
+
+		'category-edit' =>
+		[
+			'icon'	=> $icons['folder-open'],
+			'title'	=> CATEGORIES,
+			'nav'	=> false,
+			'required_access_lvl' => 100
+		],
+
+	'tags' =>
+	[
+		'icon'	=> $icons['tags'],
+		'title'	=> TAGS,
+		'nav'	=> true,
+		'required_access_lvl' => 100
+	],
+
+		'tag-create' =>
+		[
+			'icon'	=> $icons['tags'],
+			'title'	=> TAGS,
+			'nav'	=> false,
+			'required_access_lvl' => 100
+		],
+
+		'tag-edit' =>
+		[
+			'icon'	=> $icons['tags'],
+			'title'	=> TAGS,
+			'nav'	=> false,
+			'required_access_lvl' => 100
+		],
 
 	'events' =>
 	[

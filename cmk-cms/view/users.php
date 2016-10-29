@@ -156,9 +156,9 @@ if ( isset($_GET['delete'], $_GET['id']) && !empty($_GET['id']) && $_GET['id'] !
 				<form class="form-inline" data-page="<?php echo $view_file ?>">
 					<input type="hidden" name="page" value="<?php echo $view_file ?>">
 					<label class="font-weight-300">
-						Vis
-						<select class="form-control input-sm" name="page-length" data-change="submit-form">
 						<?php
+						$select = '<select class="form-control input-sm" name="page-length" data-change="submit-form">';
+
 						// Loop through the array $page_lengths defined in config.php
 						foreach($page_lengths as $key => $value)
 						{
@@ -166,11 +166,12 @@ if ( isset($_GET['delete'], $_GET['id']) && !empty($_GET['id']) && $_GET['id'] !
 							$selected = $page_length == $key ? ' selected' : '';
 
 							// Add option to select with key from array as value and value from array as label to option
-							echo '<option value="' . $key . '"' . $selected . '>' .$value .'</option>';
+							$select .= '<option value="' . $key . '"' . $selected . '>' .$value .'</option>';
 						}
+
+						$select .= '</select>';
+						echo sprintf(SHOW_AMOUNT_ELEMENTS, $select);
 						?>
-						</select>
-						elementer
 					</label>
 				</form>
 			</div>
@@ -267,7 +268,7 @@ if ( isset($_GET['delete'], $_GET['id']) && !empty($_GET['id']) && $_GET['id'] !
 
 				$items_current_total = $result->num_rows;
 
-				prettyprint($query);
+				// prettyprint($query);
 
 				while( $row = $result->fetch_object() )
 				{
@@ -281,7 +282,7 @@ if ( isset($_GET['delete'], $_GET['id']) && !empty($_GET['id']) && $_GET['id'] !
 						<!-- TOGGLE TIL AKTIVER/DEAKTIVER ELEMENT -->
 						<td class="toggle">
 							<?php if ( $row->user_id != $_SESSION['user']['id'] && ($row->role_access_level <  $_SESSION['user']['access_level'] || is_super_admin() ) ) { // Don't show toggle for current user and users with same access level, unless you're Super Administrator ?>
-							<input type="checkbox" class="toggle-checkbox" id="<?php echo $row->user_id ?>" data-type="users" <?php if ($row->user_status == 1) {  echo 'checked'; } ?>>
+							<input type="checkbox" class="toggle-checkbox" id="<?php echo $row->user_id ?>" data-type="users" <?php if ($row->user_status == 1) echo 'checked' ?>>
 							<?php } ?>
 						</td>
 
@@ -318,4 +319,4 @@ if ( isset($_GET['delete'], $_GET['id']) && !empty($_GET['id']) && $_GET['id'] !
 </div>
 
 <?php
-if (DEVELOPER_STATUS) { show_developer_info(); }
+show_developer_info();

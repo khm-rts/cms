@@ -10,7 +10,7 @@ if ( !isset($view_files) )
 
 page_access($view_file);
 
-// If session users is not defined, define it with empty array
+// If session $view_file is not defined, define it with empty array
 if ( !isset($_SESSION[$view_file]) )	$_SESSION[$view_file]				= [];
 // If these URL params is set, save their value to session
 if ( isset($_GET['page-no']) )		$_SESSION[$view_file]['page_no']		= $_GET['page-no'];
@@ -107,7 +107,7 @@ if ( isset($_GET['delete'], $_GET['id']) && !empty($_GET['id']) )
 		// Return the information from the Database as an object
 		$row	= $result->fetch_object();
 
-		// Only delete the selected page if the the selected page is not protected or current user is super admin
+		// Only delete the selected page if the selected page is not protected or current user is super admin
 		if ($row->page_protected != 1 || is_super_admin() )
 		{
 			$query =
@@ -150,21 +150,22 @@ if ( isset($_GET['delete'], $_GET['id']) && !empty($_GET['id']) )
 				<form class="form-inline" data-page="<?php echo $view_file ?>">
 					<input type="hidden" name="page" value="<?php echo $view_file ?>">
 					<label class="font-weight-300">
-						Vis
-						<select class="form-control input-sm" name="page-length" data-change="submit-form">
-							<?php
-							// Loop through the array $page_lengths defined in config.php
-							foreach($page_lengths as $key => $value)
-							{
-								// If the current $page_length matches the key in the array, save selected in the variable $selected or save empty string
-								$selected = $page_length == $key ? ' selected' : '';
+						<?php
+						$select = '<select class="form-control input-sm" name="page-length" data-change="submit-form">';
 
-								// Add option to select with key from array as value and value from array as label to option
-								echo '<option value="' . $key . '"' . $selected . '>' .$value .'</option>';
-							}
-							?>
-						</select>
-						elementer
+						// Loop through the array $page_lengths defined in config.php
+						foreach($page_lengths as $key => $value)
+						{
+							// If the current $page_length matches the key in the array, save selected in the variable $selected or save empty string
+							$selected = $page_length == $key ? ' selected' : '';
+
+							// Add option to select with key from array as value and value from array as label to option
+							$select .= '<option value="' . $key . '"' . $selected . '>' .$value .'</option>';
+						}
+
+						$select .= '</select>';
+						echo sprintf(SHOW_AMOUNT_ELEMENTS, $select);
+						?>
 					</label>
 				</form>
 			</div>
@@ -195,6 +196,8 @@ if ( isset($_GET['delete'], $_GET['id']) && !empty($_GET['id']) )
 
 					<th class="icon"></th>
 
+					<th class="icon"></th>
+
 					<?php if ( is_super_admin() ) { // Only show protection toggle for Super Admins ?>
 					<th class="toggle">
 						<a href="index.php?page=<?php echo $view_file ?>&sort-by=locked&order=<?php echo $new_order ?>" data-page="<?php echo $view_file ?>" data-params="sort-by=locked&order=<?php echo $new_order ?>" title="<?php echo SORT_BY_THIS_COLUMN ?>"><?php echo $icon_locked . LOCKED ?></a>
@@ -215,18 +218,21 @@ if ( isset($_GET['delete'], $_GET['id']) && !empty($_GET['id']) )
 				$search_sql = '';
 				if ( !empty($search) )
 				{
-					$search_sql = " 
-						WHERE 
-							(page_title LIKE '%$search%' 
-						OR 
-							page_meta_description LIKE '%$search%')";
+					$search_sql =
+							" 
+							WHERE 
+								(page_title LIKE '%$search%' 
+							OR 
+								page_meta_description LIKE '%$search%')";
 				}
 
 				$query	=
 					"SELECT 
-						page_id, page_status, page_protected, page_url_key, page_title 
+						page_id, page_status, page_protected, page_url_key, page_title, COUNT(page_content_id) AS page_content 
 					FROM 
-						pages $search_sql";
+						pages
+					LEFT JOIN
+						page_content ON pages.page_id = page_content.fk_page_id $search_sql";
 				$result	= $mysqli->query($query);
 
 				// If result returns false, use the function query_error to show debugging info
@@ -238,6 +244,8 @@ if ( isset($_GET['delete'], $_GET['id']) && !empty($_GET['id']) )
 
 				$query .=
 					"
+					GROUP BY
+						page_id
 					ORDER BY 
 						$order_by
 					LIMIT 
@@ -252,31 +260,35 @@ if ( isset($_GET['delete'], $_GET['id']) && !empty($_GET['id']) )
 
 				$items_current_total = $result->num_rows;
 
-				prettyprint($query);
+				// prettyprint($query);
 
 				while( $row = $result->fetch_object() )
 				{
+					// If page url key is empty, save empty value into $url. If not empty, prefix url key with file and URL param page
+					$url = empty($row->page_url_key) ? '' : '../index.php?page=' . $row->page_url_key;
 					?>
 					<tr>
 						<td><?php echo $row->page_title ?></td>
-						<td><a href="../<?php echo $row->page_url_key ?>" target="_blank">/<?php echo $row->page_url_key ?></a></td>
+						<td><a href="<?php echo $url ?>" target="_blank"><?php echo $url ?></a></td>
 
 						<!-- LINK TIL SIDEINDHOLD -->
 						<td class="icon">
 							<a href="index.php?page=page-content&page-id=<?php echo $row->page_id ?>" title="<?php echo $view_files['page-content']['title'] ?>" data-page="page-content" data-params="page-id=<?php echo $row->page_id ?>"><?php echo $view_files['page-content']['icon'] ?></a>
 						</td>
 
+						<td class="icon"><?php echo $row->page_content ?></td>
+
 						<?php if ( is_super_admin() ) { // Only show protection toggle for Super Admins ?>
 						<!-- TOGGLE TIL BESKYT/BESKYT IKKE ELEMENT -->
 						<td class="toggle">
-							<input type="checkbox" class="toggle-checkbox" id="<?php echo $row->page_id ?>" data-type="page-protected" <?php if ($row->page_protected == 1) {  echo 'checked'; } ?>>
+							<input type="checkbox" class="toggle-checkbox" id="<?php echo $row->page_id ?>" data-type="page-protected" <?php if ($row->page_protected == 1) echo 'checked' ?>>
 						</td>
 						<?php } ?>
 
 						<!-- TOGGLE TIL AKTIVER/DEAKTIVER ELEMENT -->
 						<td class="toggle">
 							<?php if ($row->page_protected != 1 || is_super_admin() ) { // If page is not protected or we are super admin, show status toggle ?>
-							<input type="checkbox" class="toggle-checkbox" id="<?php echo $row->page_id ?>" data-type="page-status" <?php if ($row->page_status == 1) {  echo 'checked'; } ?>>
+							<input type="checkbox" class="toggle-checkbox" id="<?php echo $row->page_id ?>" data-type="page-status" <?php if ($row->page_status == 1) echo 'checked' ?>>
 							<?php } ?>
 						</td>
 
@@ -311,4 +323,4 @@ if ( isset($_GET['delete'], $_GET['id']) && !empty($_GET['id']) )
 </div>
 
 <?php
-if (DEVELOPER_STATUS) { show_developer_info(); }
+show_developer_info();

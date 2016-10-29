@@ -9,6 +9,19 @@ if ( !isset($view_files) )
 }
 
 page_access($view_file);
+
+if ( isset($_GET['id']) && !empty($_GET['id']) )
+{
+	// Get the selected users id from the URL param
+	$id	= intval($_GET['id']);
+	// Add data-params to the form tag when using get
+	$data_params = ' data-params="id=' . $id . '"';
+}
+else
+{
+	$id = intval($_SESSION['user']['id']);
+	$data_params = '';
+}
 ?>
 <div class="page-title">
 	<span class="title">
@@ -27,22 +40,12 @@ page_access($view_file);
 	</div>
 
 	<div class="card-body">
-		<form method="post" data-page="<?php echo $view_file ?>" data-params="id=<?php echo $_GET['id'] ?>">
+		<form method="post" data-page="<?php echo $view_file ?>"<?php echo $data_params ?>>
 			<?php
-			if ( isset($_GET['id']) && !empty($_GET['id']) )
-			{
-				// Get the selected users id from the URL param
-				$id	= intval($_GET['id']);
-			}
-			else
-			{
-				$id = intval($_SESSION['user']['id']);
-			}
-
 			// Get the user from the Database
 			$query	=
 				"SELECT 
-					user_name, user_email, fk_role_id, role_access_level 
+					user_name, user_email, user_phone, user_address, user_zip, user_city, fk_role_id, role_access_level 
 				FROM 
 					users 
 				INNER JOIN 
@@ -66,12 +69,20 @@ page_access($view_file);
 				$role_id				= $row->fk_role_id;
 				$password_required		= '';
 				$password_required_label= '<small class="text-muted">(' . OPTIONAL . ')</small>';
+				$phone_tmp				= $row->user_phone;
+				$address_tmp			= $row->user_address;
+				$zip_tmp				= $row->user_zip;
+				$city_tmp				= $row->user_city;
 
 				if ( isset($_POST['save_item']) )
 				{
 					// Escape inputs and save values to variables defined before with empty value
-					$name	= $mysqli->escape_string($_POST['name']);
-					$email	= $mysqli->escape_string($_POST['email']);
+					$name			= $mysqli->escape_string($_POST['name']);
+					$email			= $mysqli->escape_string($_POST['email']);
+					$phone_tmp		= $_POST['phone'];
+					$address_tmp	= $_POST['address'];
+					$zip_tmp		= $_POST['zip'];
+					$city_tmp		= $_POST['city'];
 
 					$role_sql = '';
 					// If the selected user is not our own
@@ -150,12 +161,21 @@ page_access($view_file);
 									$password_sql	= ", user_password = '$password_hash'";
 								}
 
+								// If fields phone, address, zip or city is empty, save NULL value to the variables $phone, $address, $zip and $city. If fields is not empty escape the values from the form and add single quotes
+								$phone		= empty($_POST['phone'])	? 'NULL' : "'" . $mysqli->escape_string($_POST['phone']) . "'";
+
+								$address	= empty($_POST['address'])	? 'NULL' : "'" . $mysqli->escape_string($_POST['address']) . "'";
+
+								$zip		= empty($_POST['zip'])		? 'NULL' : "'" . $mysqli->escape_string($_POST['zip']) . "'";
+
+								$city		= empty($_POST['city'])		? 'NULL' : "'" . $mysqli->escape_string($_POST['city']) . "'";
+
 								// Update the user in the database
 								$query =
 									"UPDATE 
 										users 
 									SET 
-										user_name = '$name', user_email = '$email' $role_sql $password_sql
+										user_name = '$name', user_email = '$email', user_phone = $phone, user_address = $address, user_zip = $zip, user_city = $city $role_sql $password_sql
 									WHERE 
 										user_id = $id";
 								$result = $mysqli->query($query);
@@ -188,4 +208,4 @@ page_access($view_file);
 </div>
 
 <?php
-if (DEVELOPER_STATUS) { show_developer_info(); }
+show_developer_info();

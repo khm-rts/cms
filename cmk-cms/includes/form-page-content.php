@@ -6,7 +6,7 @@
 	</select>
 </div>
 
-<div id="1"<?php if ($content_type == 2) { echo ' style="display: none"'; } ?>>
+<div id="1"<?php if ($content_type == 2) echo ' style="display: none"' ?>>
 	<div class="form-group">
 		<label for="description"><?php echo DESCRIPTION ?>:</label>
 		<input type="text" name="description" id="description" class="form-control" <?php if ($content_type == 1) { echo 'required'; } ?> maxlength="255" value="<?php echo $description_tmp ?>">
@@ -23,7 +23,7 @@
 	</div>
 </div>
 
-<div class="form-group" id="2"<?php if ($content_type == 1) { echo ' style="display: none"'; } ?>>
+<div class="form-group" id="2"<?php if ($content_type == 1) echo ' style="display: none"' ?>>
 	<label for="page_function"><?php echo PAGE_FUNCTION ?>:</label>
 	<select class="form-control" name="page_function" id="page_function" <?php if ($content_type == 2) { echo 'required'; } ?>>
 		<?php

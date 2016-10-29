@@ -44,11 +44,16 @@ page_access($view_file);
 
 				<tbody>
 				<?php
+				// Get all menus from database and join links to count how many there is
 				$query	=
 					"SELECT 
-						*
+						menu_id, menu_name, menu_description, COUNT(fk_menu_link_id) AS links
 					FROM 
 						menus 
+					LEFT JOIN
+						menus_menu_links ON menus.menu_id = menus_menu_links.fk_menu_id
+					GROUP BY
+						menu_id
 					ORDER BY 
 						menu_name";
 				$result	= $mysqli->query($query);
@@ -63,15 +68,12 @@ page_access($view_file);
 						<td><?php echo $row->menu_name ?></td>
 						<td><?php echo $row->menu_description ?></td>
 
-						<!-- LINK TIL SIDEINDHOLD -->
+						<!-- LINK TIL MENULINKS -->
 						<td class="icon">
 							<a href="index.php?page=menu-links&menu-id=<?php echo $row->menu_id ?>" title="<?php echo $view_files['menu-links']['title'] ?>" data-page="menu-links" data-params="menu-id=<?php echo $row->menu_id ?>"><?php echo $view_files['menu-links']['icon'] ?></a>
 						</td>
 
-						<!-- TOGGLE TIL AKTIVER/DEAKTIVER ELEMENT -->
-						<td class="toggle">
-							<input type="checkbox" class="toggle-checkbox" id="<?php echo $row->menu_id ?>" data-type="menu-status" <?php if ($row->menu_status == 1) {  echo 'checked'; } ?>>
-						</td>
+						<td class="icon"><?php echo $row->links ?></td>
 					</tr>
 					<?php
 				}
@@ -83,4 +85,4 @@ page_access($view_file);
 </div>
 
 <?php
-if (DEVELOPER_STATUS) { show_developer_info(); }
+show_developer_info();

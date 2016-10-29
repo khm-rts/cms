@@ -1,6 +1,5 @@
 <?php
 ob_start();
-
 require 'config.php';
 
 // If user id or access level is not defined, or access level is below 10, throw the user away
@@ -18,16 +17,8 @@ if ( isset($_GET['logout']) )
 	exit;
 }
 
-// If view is set in URL params, save value to variable $view_file
-if ( isset($_GET['page']) )
-{
-	$view_file = $_GET['page'];
-}
-// If view is not set in URL params, save index to variable $view_file
-else
-{
-	$view_file = 'index';
-}
+// If page is set in URL params, save value to variable $view_file and if not save index to $view_file
+$view_file = isset($_GET['page']) && !empty($_GET['page']) ? $_GET['page'] : 'index';
 
 // Save path to files to include, with filename from value in $view_file
 $view_path	= 'view/' . $view_file . '.php';
@@ -60,6 +51,13 @@ $view_title	= $view_files[$view_file]['title'] . ' - CMK Admin';
 
 	<!-- CKEditor -->
 	<script src="../assets/ckeditor-4.5.1/ckeditor.js"></script>
+	<script>
+		CKEDITOR.config.filebrowserBrowseUrl		= '../assets/kcfinder-3.12/browse.php?opener=ckeditor&type=files';
+		CKEDITOR.config.filebrowserUploadUrl		= '../assets/kcfinder-3.12/upload.php?opener=ckeditor&type=files';
+		CKEDITOR.config.filebrowserImageBrowseUrl	= '../assets/kcfinder-3.12/browse.php?opener=ckeditor&type=images';
+		CKEDITOR.config.filebrowserImageUploadUrl	= '../assets/kcfinder-3.12/upload.php?opener=ckeditor&type=images';
+		CKEDITOR.config.contentsCss					= ['../assets/bootstrap-3.3.7/css/bootstrap.min.css', '../css/ckeditor.css', '../assets/font-awesome-4.6.3/css/font-awesome.min.css']
+	</script>
 	<script>CKEDITOR.dtd.$removeEmpty['span'] = false;</script> <!-- Sikrer at tomme spans ikke fjernes i editor, da de bruges til font awesome ikoner -->
 </head>
 
@@ -100,10 +98,7 @@ $view_title	= $view_files[$view_file]['title'] . ' - CMK Admin';
 							$result = $mysqli->query($query);
 
 							// If result returns false, use the function query_error to show debugging info
-							if (!$result)
-							{
-								query_error($query, __LINE__, __FILE__);
-							}
+							if (!$result) query_error($query, __LINE__, __FILE__);
 
 							// Return the information from the Database as an object
 							$row	= $result->fetch_object();

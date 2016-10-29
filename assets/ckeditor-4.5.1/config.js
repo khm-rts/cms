@@ -17,12 +17,12 @@ CKEDITOR.editorConfig = function( config ) {
 	config.extraPlugins = 'abbr';
 	
 	// CKeditor
-	config.filebrowserBrowseUrl			= '../assets/kcfinder-3.12/browse.php?opener=ckeditor&type=files';
-	config.filebrowserImageBrowseUrl	= '../assets/kcfinder-3.12/browse.php?opener=ckeditor&type=images';
-	config.filebrowserFlashBrowseUrl	= '../assets/kcfinder-3.12/browse.php?opener=ckeditor&type=flash';
-	config.filebrowserUploadUrl			= '../assets/kcfinder-3.12/upload.php?opener=ckeditor&type=files';
-	config.filebrowserImageUploadUrl	= '../assets/kcfinder-3.12/upload.php?opener=ckeditor&type=images';
-	config.filebrowserFlashUploadUrl	= '../assets/kcfinder-3.12/upload.php?opener=ckeditor&type=flash';
+	// config.filebrowserBrowseUrl			= '../assets/kcfinder-3.12/browse.php?opener=ckeditor&type=files';
+	// config.filebrowserUploadUrl			= '../assets/kcfinder-3.12/upload.php?opener=ckeditor&type=files';
+	// config.filebrowserImageBrowseUrl	= '../assets/kcfinder-3.12/browse.php?opener=ckeditor&type=images';
+	// config.filebrowserImageUploadUrl	= '../assets/kcfinder-3.12/upload.php?opener=ckeditor&type=images';
+	// config.filebrowserFlashBrowseUrl	= '../assets/kcfinder-3.12/browse.php?opener=ckeditor&type=flash';
+	// config.filebrowserFlashUploadUrl	= '../assets/kcfinder-3.12/upload.php?opener=ckeditor&type=flash';
 
 	// The toolbar groups arrangement, optimized for two toolbar rows.
 	/*config.toolbarGroups = [
@@ -84,7 +84,7 @@ CKEDITOR.editorConfig = function( config ) {
 	// config.skin = 'moono';
 	// config.skin = 'moono-dark';
 	
-	config.contentsCss = ['../assets/bootstrap-3.3.7/css/bootstrap.min.css', '../css/ckeditor.css', '../assets/font-awesome-4.6.3/css/font-awesome.min.css'];
+	//config.contentsCss = ['../assets/bootstrap-3.3.7/css/bootstrap.min.css', '../css/ckeditor.css', '../assets/font-awesome-4.6.3/css/font-awesome.min.css'];
 	
 	// Bootstraps bodyClass så body har en responsive bredde
 	config.bodyClass = 'container';

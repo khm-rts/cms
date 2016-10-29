@@ -1,41 +1,26 @@
 <?php
-if ( !isset($view_files) )
-{
-	require '../config.php';
-}
+if ( !isset($view_files) ) require '../config.php';
 
-if ( isset($_GET['status']) )
-{
-	$status = $_GET['status'];
+// If status is defined in URL params, use te value from that, and if not, use default value 404
+$status = isset($_GET['status']) ? $_GET['status'] : 404;
 
-	switch ($status) {
-		case 400:
-			$title	= PAGE_NOT_FOUND;
-			$text	= PAGE_NOT_FOUND_DESCR;
-			break;
-		case 401:
-			$title	= PAGE_DENIED;
-			$text	= PAGE_DENIED_DESCR;
-			break;
-		case 403:
-			$title	= PAGE_DENIED;
-			$text	= PAGE_DENIED_DESCR;
-			break;
-		case 404:
-			$title	= PAGE_NOT_FOUND;
-			$text	= PAGE_NOT_FOUND_DESCR;
-			break;
-		case 500:
-			$title	= PAGE_ERROR;
-			$text	= PAGE_ERROR_DESCR;
-			break;
-	}
-}
-else
+// Do switch on value from  $status
+switch ($status)
 {
-	$status	= 404;
-	$title	= PAGE_NOT_FOUND;
-	$text	= PAGE_NOT_FOUND_DESCR;
+	case 401:
+	case 403:
+		$title	= PAGE_DENIED;
+		$text	= PAGE_DENIED_DESCR;
+		break;
+	case 500:
+		$title	= PAGE_ERROR;
+		$text	= PAGE_ERROR_DESCR;
+		break;
+	case 400:
+	case 404:
+	default:
+		$title	= PAGE_NOT_FOUND;
+		$text	= PAGE_NOT_FOUND_DESCR;
 }
 ?>
 <div class="page-title">

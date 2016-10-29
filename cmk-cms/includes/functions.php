@@ -1,4 +1,9 @@
 <?php
+/**
+ * Function to display a bootstrap styled message
+ * @param string $type:		Part of class name that defines the color of the box. success || warning || danger etc.
+ * @param string $message:	The text to display inside the box
+ */
 function alert($type, $message)
 {
 	?>
@@ -9,6 +14,92 @@ function alert($type, $message)
 	<?php
 }
 
+/**
+ * Function to display debugging info when a connect to the database fails
+ * @param int $line_number:		The current line number where the function is runned. Use magic constant __LINE__
+ * @param string $file_name:	The current file where the function is runned. Use magic constant __FILE__
+ */
+function connect_error($line_number, $file_name)
+{
+	global $mysqli;
+
+	// If developer status is set to true, show all information
+	if (DEVELOPER_STATUS)
+	{
+		die('<p>Forbindelsesfejl (' . $mysqli->connect_errno . '): ' . $mysqli->connect_error . '</p><p>Linje: ' . $line_number . '</p><p>Fil: ' . $file_name . '</p>');
+	}
+	// If developer status is set to false, only show user friendly message
+	else
+	{
+		die(CONNECT_ERROR);
+	}
+}
+
+/**
+ * Function to display debugging info when a query to the database fails
+ * @param string $query:		The query/sql that failed
+ * @param int $line_number:		The current line number where the function is runned. Use magic constant __LINE__
+ * @param string $file_name:	The current file where the function is runned. Use magic constant __FILE__
+ */
+function query_error($query, $line_number, $file_name)
+{
+	global $mysqli;
+
+	// If developer status is set to true, show all information
+	if (DEVELOPER_STATUS)
+	{
+		$message =
+				'<strong>' . $mysqli->error . '</strong><br>
+			Linje: <strong>' . $line_number .' </strong><br>
+			Fil: <strong>' . $file_name . '</strong>
+			<pre class="prettyprint lang-sql linenums"><code>' . $query . '</code></pre>';
+
+		alert('danger', $message);
+		$mysqli->close();
+	}
+	// If developer status is set to false, only show user friendly message
+	else
+	{
+		alert('danger', SQL_ERROR);
+		$mysqli->close();
+
+	}
+}
+
+/**
+ * Function to display data in pre and code tag and styled with Googles Prettyprint
+ * @param $data
+ */
+function prettyprint($data, $prefix_string = '')
+{
+	?>
+	<pre class="prettyprint lang-php"><code><?php echo $prefix_string; print_r($data) ?></code></pre>
+	<?php
+}
+
+/**
+ * Function to show all the typically hidden information that is useful for developers
+ */
+function show_developer_info()
+{
+	// If developer status is set to true, show all information from get/post/files/session/cookie
+	if (DEVELOPER_STATUS)
+	{
+		echo '<br>';
+		prettyprint($_GET, 'GET ');
+		prettyprint($_POST, 'POST ');
+		prettyprint($_FILES, 'FILES ');
+		prettyprint($_SESSION, 'SESSION ');
+		prettyprint($_COOKIE, 'COOKIE ');
+	}
+}
+
+/**
+ * Function to insert a new event into the logbook
+ * @param string $type:			The name that matches the type of event. create || update || delete etc.
+ * @param string $description:	The text that descripe what has happened when this function is runned
+ * @param int $access_level:	The required access level for the action that took place
+ */
 function create_event($type, $description, $access_level)
 {
 	global $mysqli;
@@ -46,49 +137,458 @@ function create_event($type, $description, $access_level)
 	}
 }
 
-function connect_error($error_no, $error, $line_number, $file_name)
+/**
+ * Function to create link and relation to menus. Used on page-create.php and menu-link-create.php
+ * @param array	$menus: 		id for selected menus we wan't the link in
+ * @param string $name:			the visible name of the link in the menu
+ * @param int $page_id:			id for the page being linked to
+ * @param int $link_type:		type of link. 1: Just link to a page, 2: link to post on a page, 3: link to bookmark on a page
+ * @param string $bookmark_tmp:	Optional value of id for a bookmark on a page, when link type is set to 3
+ * @param int $post_id_tmp:		Optional id to a post, when link type is set to 2
+ */
+function create_menu_link($menus, $name, $page_id, $link_type = 1, $bookmark_tmp = NULL, $post_id_tmp = NULL)
 {
-	if (DEVELOPER_STATUS)
+	// If one of the required fields is empty
+	if ( empty($menus) || empty($name) || empty($page_id) || ( $link_type == 2 && empty($post_id_tmp) ) || ( $link_type == 3 && empty($bookmark_tmp) ) )
 	{
-		die('<p>Forbindelsesfejl (' . $error_no . '): ' . $error . '</p><p>Linje: ' . $line_number . '</p><p>Fil: ' . $file_name . '</p>');
+		alert('warning', REQUIRED_FIELDS_EMPTY);
 	}
+	// If all required fields is not empty, continue
 	else
 	{
-		die(CONNECT_ERROR);
-	}
-}
+		global $mysqli, $view_files;
 
-function query_error($query, $line_number, $file_name)
-{
-	global $mysqli;
+		switch ($link_type)
+		{
+			// If link type is 2, use intval and save value in $post and set $bookmark to NULL, because it's not needed
+			case 2:
+				$post_id	= intval($post_id_tmp);
+				$bookmark	= 'NULL';
+				break;
+			// If link type is 3, use escape string, add quotes and save value in $bookmark and set $post_id to NULL, because it's not needed
+			case 3:
+				$post_id	= 'NULL';
+				$bookmark	= "'" . $mysqli->escape_string($bookmark_tmp) . "'";
+				break;
+			// If link type is not 2 or 3, set both $post_id and $bookmark to NULL, because they aren't not needed
+			default:
+				$post_id	= 'NULL';
+				$bookmark	= 'NULL';
+		}
 
-	if (DEVELOPER_STATUS)
-	{
-		$message =
-			'<strong>' . $mysqli->error . '</strong><br>
-			Linje: <strong>' . $line_number .' </strong><br>
-			Fil: <strong>' . $file_name . '</strong>
-			<pre class="prettyprint lang-sql linenums"><code>' . $query . '</code></pre>';
+		// Insert the menu-link into the database
+		$query =
+			"INSERT INTO 
+				menu_links (menu_link_name, menu_link_bookmark, fk_link_type_id, fk_page_id, fk_post_id) 
+			VALUES 
+				('$name', $bookmark, $link_type, $page_id, $post_id)";
+		$result = $mysqli->query($query);
 
-		alert('danger', $message);
-		$mysqli->close();
-	}
-	else
-	{
-		alert('danger', SQL_ERROR);
-		$mysqli->close();
+		// If result returns false, use the function query_error to show debugging info
+		if (!$result) query_error($query, __LINE__, __FILE__);
 
-	}
-}
+		// Get the newly created menu link id
+		$menu_link_id = $mysqli->insert_id;
 
-function prettyprint($data)
-{
-	?>
-	<pre class="prettyprint lang-php"><code><?php print_r($data) ?></code></pre>
-	<?php
+		// Create relation between newly created link and the selected menus
+		foreach ($menus as $menu)
+		{
+			$menu_id = intval($menu);
+
+			// Get the new order for the new link being created
+			$query =
+				"SELECT 
+					COUNT(*) AS count 
+				FROM 
+					menus_menu_links 
+				WHERE 
+					fk_menu_id = $menu_id";
+			$result = $mysqli->query($query);
+
+			// If result returns false, use the function query_error to show debugging info
+			if (!$result) query_error($query, __LINE__, __FILE__);
+
+			$row = $result->fetch_object();
+			// Set the new order to counted items plus 1, so new content is adding last in order
+			$new_order = $row->count + 1;
+
+			$query =
+				"INSERT INTO
+					menus_menu_links (menu_link_order, fk_menu_id, fk_menu_link_id)
+				VALUES
+					($new_order, $menu_id, $menu_link_id)";
+			$result = $mysqli->query($query);
+
+			// If result returns false, use the function query_error to show debugging info
+			if (!$result) query_error($query, __LINE__, __FILE__);
+		}
+
+		// If link type is 2 (link to post), use this text to event
+		if ($link_type == 2)
+		{
+			$query =
+				"SELECT 
+					post_title
+				FROM 
+					posts
+				WHERE
+					post_id = $post_id";
+				$result = $mysqli->query($query);
+
+			// If result returns false, use the function query_error to show debugging info
+			if (!$result) query_error($query, __LINE__, __FILE__);
+
+			$row = $result->fetch_object();
+
+			$event_txt = 'til blog-indlægget <a href="index.php?page=post-edit&id=' . $post_id . '">' . $row->post_title . '</a>';
+		}
+		// If link type is not 2, get page_title to use in text to event
+		else
+		{
+			// Get the title for the page linked to
+			$query	=
+				"SELECT 
+					page_title
+				FROM 
+					pages 
+				WHERE 
+					page_id = $page_id";
+			$result = $mysqli->query($query);
+
+			// If result returns false, use the function query_error to show debugging info
+			if (!$result) query_error($query, __LINE__, __FILE__);
+
+			$row = $result->fetch_object();
+
+			// If link type is 3 (link to bookmark), use this text to event
+			if ($link_type == 3)
+			{
+				$event_txt = 'til bogmærket ' . $bookmark_tmp . ' på siden <a href="index.php?page=page-edit&id=' . $page_id . '" data-page="page-edit" data-params="id='. $page_id . '">' . $row->page_title . '</a>';
+			}
+			// If link type is not 2 or 3, use this text to event
+			else
+			{
+				$event_txt = 'til siden <a href="index.php?page=page-edit&id=' . $page_id . '" data-page="page-edit" data-params="id='. $page_id . '">' . $row->page_title . '</a>';
+			}
+		}
+
+		// Use function to insert event in log (just show link for last menu in array menus, so we use end(), to take the last value)
+		create_event('create', 'af link <a href="index.php?page=menu-link-edit&menu-id=' . end($menus) . '&id= ' . $menu_link_id . '" data-page="menu-link-edit" data-params="menu-id=' . end($menus) . '&id= ' . $menu_link_id . '">' . $name . '</a> ' . $event_txt, $view_files['menu-link-create']['required_access_lvl']);
+
+		// Use function to insert event in log
+		alert('success', ITEM_CREATED . ' <a href="index.php?page=menu-links&menu-id=' . end($menus) . '" data-page="menu-links" data-params="menu-id='. end($menus) .'">' . RETURN_TO_OVERVIEW . '</a>');
+	} // Closes: if ( empty($menus) || empty($name) || empty($link_type)...
 }
 
 /**
+ * Function to update link and relation to menus. Used on page-edit.php and menu-link-edit.php
+ * @param array	$menus: 		id for selected menus we wan't the link in
+ * @param int $menu_link_id:	id for the link being updated
+ * @param string $name:			the visible name of the link in the menu
+ * @param int $page_id:			id for the page being linked to
+ * @param int $link_type:		type of link. 1: Just link to a page, 2: link to post on a page, 3: link to bookmark on a page
+ * @param string $bookmark_tmp:	Optional value of id for a bookmark on a page, when link type is set to 3
+ * @param int $post_id_tmp:		Optional id to a post, when link type is set to 2
+ */
+function update_menu_link($menus, $menu_link_id, $name, $page_id, $link_type = 1, $bookmark_tmp = NULL, $post_id_tmp = NULL)
+{
+	// If one of the required fields is empty
+	if ( empty($menus) || empty($name) || empty($page_id) || ( $link_type == 2 && empty($post_id_tmp) ) || ( $link_type == 3 && empty($bookmark_tmp) ) )
+	{
+		alert('warning', REQUIRED_FIELDS_EMPTY);
+	}
+	// If all required fields is not empty, continue
+	else
+	{
+		global $mysqli, $view_files;
+
+		switch ($link_type)
+		{
+			// If link type is 2, use intval and save value in $post and set $bookmark to NULL, because it's not needed
+			case 2:
+				$post_id	= intval($post_id_tmp);
+				$bookmark	= 'NULL';
+				break;
+			// If link type is 3, use escape string, add quotes and save value in $bookmark and set $post_id to NULL, because it's not needed
+			case 3:
+				$post_id	= 'NULL';
+				$bookmark	= "'" . $mysqli->escape_string($bookmark_tmp) . "'";
+				break;
+			// If link type is not 2 or 3, set both $post_id and $bookmark to NULL, because they aren't not needed
+			default:
+				$post_id	= 'NULL';
+				$bookmark	= 'NULL';
+		}
+
+		// Update the menu-link in the database
+		$query =
+			"UPDATE 
+				menu_links
+			SET 
+				menu_link_name = '$name', menu_link_bookmark = $bookmark, fk_link_type_id = $link_type, fk_page_id = $page_id, fk_post_id = $post_id 
+			WHERE
+				menu_link_id = $menu_link_id";
+		$result = $mysqli->query($query);
+
+		// If result returns false, use the function query_error to show debugging info
+		if (!$result) query_error($query, __LINE__, __FILE__);
+
+		// Get menu_id's for current relations between menu links and menus
+		$query =
+				"SELECT
+					GROUP_CONCAT(fk_menu_id) as menus
+				FROM
+					menus_menu_links
+				WHERE
+					fk_menu_link_id = $menu_link_id";
+		$result = $mysqli->query($query);
+
+		// If result returns false, use the function query_error to show debugging info
+		if (!$result) query_error($query, __LINE__, __FILE__);
+
+		$row = $result->fetch_object();
+		// Convert CSV with current menu_id's to array
+		$current_menus = explode(',', $row->menus);
+		// Compare selected $menus with $current_menus and save new items from $menus to new array: $new_menus (items to create)
+		$new_menus = array_diff($menus, $current_menus);
+		// Compare $current_menus with $menus and save old items from $current_menus to new array: $old_menus (items to delete)
+		$old_menus = array_diff($current_menus, $menus);
+		// Convert array to CSV to match items in database
+		$old_menus_csv = implode(',', $old_menus);
+
+		// If there are any items to delete
+		if ( count($old_menus) > 0 )
+		{
+			delete_menu_link($menu_link_id, $old_menus_csv);
+		}
+
+		// If there's any items to create
+		if ( count($new_menus) > 0 )
+		{
+			// Insert relations between updated link and the selected menus
+			foreach ($new_menus as $new_menu)
+			{
+				$menu_id = intval($new_menu);
+
+				// Get the new order for the new link being created
+				$query =
+						"SELECT 
+							COUNT(*) AS count 
+						FROM 
+							menus_menu_links 
+						WHERE 
+							fk_menu_id = $menu_id";
+				$result = $mysqli->query($query);
+
+				// If result returns false, use the function query_error to show debugging info
+				if (!$result) query_error($query, __LINE__, __FILE__);
+
+				$row = $result->fetch_object();
+				// Set the new order to counted items plus 1, so new content is adding last in order
+				$new_order = $row->count + 1;
+
+				$query =
+						"INSERT INTO
+							menus_menu_links (menu_link_order, fk_menu_id, fk_menu_link_id)
+						VALUES
+							($new_order, $menu_id, $menu_link_id)";
+				$result = $mysqli->query($query);
+
+				// If result returns false, use the function query_error to show debugging info
+				if (!$result) query_error($query, __LINE__, __FILE__);
+			}
+		}
+
+		// If link type is 2 (link to post), use this text to event
+		if ($link_type == 2)
+		{
+			$query =
+					"SELECT 
+						post_title
+					FROM 
+						posts
+					WHERE
+						post_id = $post_id";
+			$result = $mysqli->query($query);
+
+			// If result returns false, use the function query_error to show debugging info
+			if (!$result) query_error($query, __LINE__, __FILE__);
+
+			$row = $result->fetch_object();
+
+			$event_txt = 'til blog-indlægget <a href="index.php?page=post-edit&id=' . $post_id . '">' . $row->post_title . '</a>';
+		}
+		// If link type is not 2, get page_title to use in text to event
+		else
+		{
+			// Get the title for the page linked to
+			$query	=
+					"SELECT 
+						page_title
+					FROM 
+						pages 
+					WHERE 
+						page_id = $page_id";
+			$result = $mysqli->query($query);
+
+			// If result returns false, use the function query_error to show debugging info
+			if (!$result) query_error($query, __LINE__, __FILE__);
+
+			$row = $result->fetch_object();
+
+			// If link type is 3 (link to bookmark), use this text to event
+			if ($link_type == 3)
+			{
+				$event_txt = 'til bogmærket ' . $bookmark_tmp . ' på siden <a href="index.php?page=page-edit&id=' . $page_id . '" data-page="page-edit" data-params="id='. $page_id . '">' . $row->page_title . '</a>';
+			}
+			// If link type is not 2 or 3, use this text to event
+			else
+			{
+				$event_txt = 'til siden <a href="index.php?page=page-edit&id=' . $page_id . '" data-page="page-edit" data-params="id='. $page_id . '">' . $row->page_title . '</a>';
+			}
+		}
+
+		// Use function to insert event in log (just show link for last menu in array menus, so we use end(), to take the last value)
+		create_event('update', 'af link <a href="index.php?page=menu-link-edit&menu-id=' . end($menus) . '&id= ' . $menu_link_id . '" data-page="menu-link-edit" data-params="menu-id=' . end($menus) . '&id= ' . $menu_link_id . '">' . $name . '</a> ' . $event_txt, $view_files['menu-link-create']['required_access_lvl']);
+
+		// Use function to insert event in log
+		alert('success', ITEM_UPDATED . ' <a href="index.php?page=menu-links&menu-id=' . end($menus) . '" data-page="menu-links" data-params="menu-id='. end($menus) .'">' . RETURN_TO_OVERVIEW . '</a>');
+	} // Closes: if ( empty($menus) || empty($name) || empty($link_type)...
+}
+
+/**
+ * Function to delete relation between link and menus or the link entirely. Used in update_menu_link(), menu-links.php, page-edit.php
+ * @param int $menu_link_id: id to the link being deleted
+ * @param null/csv $menus_csv: id to menus where the relation should be deleted
+ */
+function delete_menu_link($menu_link_id, $menus_csv = NULL)
+{
+	global $mysqli, $view_files;
+
+	// Get info to the link from the Database
+	$query =
+			"SELECT 
+				menu_link_name, menu_link_bookmark, fk_link_type_id, page_id, page_title, post_id, post_title
+			FROM 
+				menu_links 
+			INNER JOIN 
+				pages ON menu_links.fk_page_id = pages.page_id
+			LEFT JOIN 
+				posts ON menu_links.fk_post_id = posts.post_id
+			WHERE 
+				menu_link_id = $menu_link_id";
+	$result = $mysqli->query($query);
+
+	// If result returns false, use the function query_error to show debugging info
+	if (!$result) query_error($query, __LINE__, __FILE__);
+
+	// Delete the selected link if found
+	if ($result->num_rows > 0)
+	{
+		// Return the information from the Database as an object
+		$row = $result->fetch_object();
+
+		// If $menus_csv is defined, only update order for this menu
+		$menu_sql = '';
+		if ( isset($menus_csv) )
+		{
+			$menu_sql =
+				"
+				AND
+					fk_menu_id IN ($menus_csv)";
+		}
+
+		// Get info for relation between link and menus being deleted, to update order
+		$query =
+				"SELECT
+					menu_link_order, fk_menu_id
+				FROM
+					menus_menu_links
+				WHERE
+					fk_menu_link_id = $menu_link_id $menu_sql";
+		$result = $mysqli->query($query);
+
+		// If result returns false, use the function query_error to show debugging info
+		if (!$result) query_error($query, __LINE__, __FILE__);
+
+		while( $row_update = $result->fetch_object() )
+		{
+			$current_order	= $row_update->menu_link_order;
+			$current_menu	= $row_update->fk_menu_id;
+
+			// Update order on relation between link and the current menu, with higher order than the one deleted
+			$query =
+					"UPDATE 
+						menus_menu_links 
+					SET 
+						menu_link_order = menu_link_order - 1 
+					WHERE 
+						menu_link_order > $current_order 
+					AND 
+						fk_menu_id = $current_menu";
+			$result_update = $mysqli->query($query);
+
+			// If result returns false, use the function query_error to show debugging info
+			if (!$result_update) query_error($query, __LINE__, __FILE__);
+		}
+
+		// Delete relation between link and selected menus
+		$query =
+				"DELETE FROM
+					menus_menu_links
+				WHERE
+					fk_menu_link_id = $menu_link_id $menu_sql";
+		$result = $mysqli->query($query);
+
+		// If result returns false, use the function query_error to show debugging info
+		if (!$result) query_error($query, __LINE__, __FILE__);
+
+		// Get the relations between link and menus after delete
+		$query =
+				"SELECT
+					fk_menu_id
+				FROM 
+					menus_menu_links
+				WHERE 
+					fk_menu_link_id = $menu_link_id";
+		$result = $mysqli->query($query);
+
+		// If result returns false, use the function query_error to show debugging info
+		if (!$result) query_error($query, __LINE__, __FILE__);
+
+		// If there's no relations left, delete the link
+		if ($result->num_rows == 0)
+		{
+			$query =
+					"DELETE FROM
+						menu_links
+					WHERE 
+						menu_link_id = $menu_link_id";
+			$result = $mysqli->query($query);
+
+			// If result returns false, use the function query_error to show debugging info
+			if (!$result) query_error($query, __LINE__, __FILE__);
+		}
+
+		switch ($row->fk_link_type_id)
+		{
+			case 2:
+				$event_txt = 'til blog-indlægget <a href="index.php?page=post-edit&id=' . $row->post_id . '">' . $row->post_title . '</a>';
+				break;
+			case 3:
+				$event_txt = 'til bogmærket ' . $row->menu_link_bookmark . ' på siden <a href="index.php?page=page-edit&id=' . $row->page_id . '" data-page="page-edit" data-params="id=' . $row->page_id . '">' . $row->page_title . '</a>';
+				break;
+			default:
+				$event_txt = 'til siden <a href="index.php?page=page-edit&id=' . $row->page_id . '" data-page="page-edit" data-params="id=' . $row->page_id . '">' . $row->page_title . '</a>';
+		}
+
+		// Opret delete event i logbogen.
+		create_event('delete', 'af linket ' . $row->menu_link_name . ' ' . $event_txt, $view_files['menu-links']['required_access_lvl']);
+	}
+}
+
+/**
+ * Function to create links for pagination
  * @param string $page: The name of the file in view/ the links in the pagination should refer to
  * @param int $page_no: current page no
  * @param int $items_total: the counted total amount of items
@@ -175,19 +675,10 @@ function pagination($page, $page_no, $items_total, $page_length, $page_around = 
 	}
 }
 
-function show_developer_info()
-{
-	?>
-	<br>
-	<pre class="prettyprint lang-php"><code>GET <?php print_r($_GET) ?></code></pre>
-	<pre class="prettyprint lang-php"><code>POST <?php print_r($_POST) ?></code></pre>
-	<pre class="prettyprint lang-php"><code>FILES <?php print_r($_FILES) ?></code></pre>
-	<pre class="prettyprint lang-php"><code>SESSION <?php print_r($_SESSION) ?></code></pre>
-	<pre class="prettyprint lang-php"><code>COOKIE <?php print_r($_COOKIE) ?></code></pre>
-	<?php
-}
-
-// Take the user agent info from the browser, add a salt and hash the information with the algo sha256
+/**
+ * Take the user agent info from the browser, add a salt and hash the information with the algo sha256
+ * @return string
+ */
 function fingerprint()
 {
 	return hash('sha256', $_SERVER['HTTP_USER_AGENT'] . '!Å%bpxP-ghQæØ#_(');
@@ -267,7 +758,9 @@ function login($email, $password)
 	return false;
 }
 
-// Delete the sessions from login and give the session a new id
+/**
+ * Delete the sessions from login and give the session a new id
+ */
 function logout()
 {
 	unset($_SESSION['user']);
@@ -286,6 +779,9 @@ function is_super_admin()
 	return $_SESSION['user']['access_level'] == 1000 ? true : false;
 }
 
+/**
+ * Function to check if the fingerprint stored in session, matches to current fingerprint returned from the function fingerprint()
+ */
 function check_fingerprint()
 {
 	// If the current fingerprint returned from the function doesn't match the fingerprint stored in session, logout!
@@ -301,6 +797,9 @@ function check_fingerprint()
 	}
 }
 
+/**
+ * Function to check if the user has been active within the last 30 mins
+ */
 function check_last_activity()
 {
 	// If developer status is false, use on session
@@ -325,6 +824,11 @@ function check_last_activity()
 	}
 }
 
+/**
+ * Function to check if the user has the required access level for the page where this function is runned
+ * @param string $page: Filename without extension from view folder and array $view_files defined in config.php
+ *
+ */
 function page_access($page)
 {
 	global $view_files;
@@ -333,7 +837,7 @@ function page_access($page)
 	{
 		?>
 		<script type="text/javascript">
-			location.href= 'index.php';
+			location.href= '../../../index.php';
 		</script>
 		<?php
 		exit;

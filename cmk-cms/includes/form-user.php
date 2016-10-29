@@ -19,6 +19,29 @@
 </div>
 
 <div class="form-group">
+	<label for="phone"><?php echo PHONE ?>: <span class="text-muted">(<?php echo OPTIONAL ?>)</span></label>
+	<input type="number" name="phone" id="phone" class="form-control" value="<?php echo $phone_tmp ?>">
+</div>
+
+<div class="form-group">
+	<label for="address"><?php echo ADDRESS ?>: <span class="text-muted">(<?php echo OPTIONAL ?>)</span></label>
+	<input type="text" name="address" id="address" class="form-control" value="<?php echo $address_tmp ?>">
+</div>
+
+<div class="form-group">
+	<div class="row">
+		<div class="col-md-3">
+			<label for="zip"><?php echo ZIP ?>: <span class="text-muted">(<?php echo OPTIONAL ?>)</span></label>
+			<input type="number" name="zip" id="zip" class="form-control" value="<?php echo $zip_tmp ?>">
+		</div>
+		<div class="col-md-9">
+			<label for="city"><?php echo CITY ?>: <small class="text-muted">(<?php echo OPTIONAL ?>)</small></label>
+			<input type="text" name="city" id="city" class="form-control" maxlength="50" value="<?php echo $city_tmp ?>">
+		</div>
+	</div>
+</div>
+
+<div class="form-group">
 	<label for="role"><?php echo ROLE ?>:</label>
 	<select class="form-control" name="role" id="role" <?php if (isset($id) && $id == $_SESSION['user']['id']) { echo 'disabled'; } else { echo 'required'; } // If our own user, set disabled and if not set required on ?>>
 		<?php

@@ -85,6 +85,42 @@ switch($sort_by)
 		$order_by			= "role_name " . strtoupper($order);
 		break;
 }
+
+// If delete and id is defined in URL params, the id is not empty and current user is super admin, delete the selected item
+if ( isset($_GET['delete'], $_GET['id']) && !empty($_GET['id']) && is_super_admin() )
+{
+	// Get the selected item id from the URL param id
+	$id		= intval($_GET['id']);
+	// Get the item from the Database
+	$query	=
+		"SELECT 
+			event_id
+		FROM 
+			events 
+		WHERE 
+			event_id = $id";
+	$result = $mysqli->query($query);
+
+	// If result returns false, use the function query_error to show debugging info
+	if (!$result) query_error($query, __LINE__, __FILE__);
+
+	// Delete the selected item if found
+	if ( $result->num_rows == 1)
+	{
+		// Return the information from the Database as an object
+		$row	= $result->fetch_object();
+
+		$query =
+			"DELETE FROM
+				events 
+			WHERE 
+				event_id = $id";
+		$result = $mysqli->query($query);
+
+		// If result returns false, use the function query_error to show debugging info
+		if (!$result) query_error($query, __LINE__, __FILE__);
+	}
+}
 ?>
 <div class="page-title">
 	<span class="title">
@@ -108,20 +144,22 @@ switch($sort_by)
 				<form class="form-inline" data-page="<?php echo $view_file ?>">
 					<input type="hidden" name="page" value="<?php echo $view_file ?>">
 					<label class="font-weight-300">
-						Vis
-						<select class="form-control input-sm" name="page-length" data-change="submit-form">
-							<?php
-							foreach($page_lengths as $key => $value)
-							{
-								// If the current $page_length matches the key in the array, save selected in the variable $selected or save empty string
-								$selected = $page_length == $key ? ' selected' : '';
+						<?php
+						$select = '<select class="form-control input-sm" name="page-length" data-change="submit-form">';
 
-								// Add option to select with key from array as value and value from array as label to option
-								echo '<option value="' . $key . '"' . $selected . '>' .$value .'</option>';
-							}
-							?>
-						</select>
-						elementer
+						// Loop through the array $page_lengths defined in config.php
+						foreach($page_lengths as $key => $value)
+						{
+							// If the current $page_length matches the key in the array, save selected in the variable $selected or save empty string
+							$selected = $page_length == $key ? ' selected' : '';
+
+							// Add option to select with key from array as value and value from array as label to option
+							$select .= '<option value="' . $key . '"' . $selected . '>' .$value .'</option>';
+						}
+
+						$select .= '</select>';
+						echo sprintf(SHOW_AMOUNT_ELEMENTS, $select);
+						?>
 					</label>
 				</form>
 			</div>
@@ -157,6 +195,7 @@ switch($sort_by)
 					<th>
 						<a href="index.php?page=<?php echo $view_file ?>&sort-by=role-name&order=<?php echo $new_order ?>" data-page="<?php echo $view_file ?>" data-params="sort-by=role-name&order=<?php echo $new_order ?>" title="<?php echo SORT_BY_THIS_COLUMN ?>"><?php echo $icon_role_name . ROLE ?></a>
 					</th>
+					<th class="icon"></th>
 				</tr>
 				</thead>
 
@@ -188,7 +227,7 @@ switch($sort_by)
 
 				$query	=
 					"SELECT 
-						DATE_FORMAT(event_time, '" . DATETIME_FORMAT . "') AS event_time_formatted, event_description, event_type_name, event_type_class, user_name, role_name 
+						event_id, DATE_FORMAT(event_time, '" . DATETIME_FORMAT . "') AS event_time_formatted, event_description, event_type_name, event_type_class, user_name, role_name 
 					FROM 
 						events 
 					INNER JOIN 
@@ -199,7 +238,11 @@ switch($sort_by)
 						roles ON users.fk_role_id = roles.role_id 
 					WHERE 
 						1=1 $search_sql $access_level_sql";
+
 				$result	= $mysqli->query($query);
+
+				// If result returns false, use the function query_error to show debugging info
+				if (!$result) query_error($query, __LINE__, __FILE__);
 
 				$items_total = $result->num_rows;
 
@@ -216,14 +259,12 @@ switch($sort_by)
 
 				$result	= $mysqli->query($query);
 
+				// If result returns false, use the function query_error to show debugging info
+				if (!$result) query_error($query, __LINE__, __FILE__);
+
 				$items_current_total = $result->num_rows;
 
-				prettyprint($query);
-
-				if (!$result)
-				{
-					query_error($query, __LINE__, __FILE__);
-				}
+				// prettyprint($query);
 
 				while( $row = $result->fetch_object() )
 				{
@@ -234,6 +275,12 @@ switch($sort_by)
 						<td><?php echo $row->event_description ?></td>
 						<td><?php echo $row->user_name ?></td>
 						<td><?php echo constant($row->role_name) ?></td>
+						<!-- SLET LINK -->
+						<td class="icon">
+							<?php if ( is_super_admin() ) { ?>
+							<a class="<?php echo $buttons['delete'] ?>" data-toggle="confirmation" href="index.php?page=<?php echo $view_file; ?>&id=<?php echo $row->event_id ?>&delete" data-page="<?php echo $view_file; ?>" data-params="id=<?php echo $row->event_id ?>&delete" title="<?php echo DELETE_ITEM ?>"><?php echo $icons['delete'] ?></a>
+							<?php } ?>
+						</td>
 					</tr>
 					<?php
 				}
@@ -254,4 +301,4 @@ switch($sort_by)
 </div>
 
 <?php
-if (DEVELOPER_STATUS) { show_developer_info(); }
+show_developer_info();

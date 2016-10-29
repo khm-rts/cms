@@ -24,58 +24,8 @@ else {
 	if (isset($_GET['delete'], $_GET['id']) && !empty($_GET['id'])) {
 		// Get the selected page id from the URL param id
 		$id = intval($_GET['id']);
-		// Get the page from the Database
-		$query =
-				"SELECT 
-				page_content_order, page_content_type, page_content_description, page_title, page_function_description
-			FROM 
-				page_content 
-			INNER JOIN 
-				pages ON page_content.fk_page_id = pages.page_id
-			LEFT JOIN 
-				page_functions ON page_content.fk_page_function_id = page_functions.page_function_id
-			WHERE 
-				page_content_id = $id";
-		$result = $mysqli->query($query);
 
-		// If result returns false, use the function query_error to show debugging info
-		if (!$result) query_error($query, __LINE__, __FILE__);
-
-		// Delete the selected page-content if found
-		if ($result->num_rows == 1) {
-			// Return the information from the Database as an object
-			$row = $result->fetch_object();
-
-			$query =
-					"DELETE FROM
-					menu_links
-				WHERE 
-					menu_link_id = $id";
-			$result = $mysqli->query($query);
-
-			// If result returns false, use the function query_error to show debugging info
-			if (!$result) query_error($query, __LINE__, __FILE__);
-
-			$current_order = $row->menu_link_order;
-
-			// Update order
-			$query =
-					"UPDATE 
-					menu_links 
-				SET 
-					menu_link_order = menu_link_order - 1 
-				WHERE 
-					menu_link_order > $current_order 
-				AND 
-					fk_menu_id = $menu_id";
-			$result = $mysqli->query($query);
-
-			// If result returns false, use the function query_error to show debugging info
-			if (!$result) query_error($query, __LINE__, __FILE__);
-
-			// Opret delete event i logbogen.
-			create_event('delete', 'af menu-linket ' . ($row->page_content_type == 1 ? $row->page_content_description : $row->page_function_description) . ' på ' . $row->page_title, $view_files[$view_file]['required_access_lvl']);
-		}
+		delete_menu_link($id, $menu_id);
 	}
 
 	// Get the menu from the Database
@@ -96,7 +46,7 @@ else {
 	?>
 
 	<div class="page-title">
-		<a class="<?php echo $buttons['create'] ?> pull-right" href="index.php?page=menu-link-create&menu-id=1" data-page="menu-link-create" data-params="menu-id=1"><?php echo $icons['create'] . CREATE_ITEM ?></a>
+		<a class="<?php echo $buttons['create'] ?> pull-right" href="index.php?page=menu-link-create&menu-id=<?php echo $menu_id ?>" data-page="menu-link-create" data-params="menu-id=<?php echo $menu_id ?>"><?php echo $icons['create'] . CREATE_ITEM ?></a>
 		<span class="title">
 		<?php
 		// Get icon and title from Array $files, defined in config.php
@@ -132,15 +82,19 @@ else {
 					// Get all links from the database
 					$query =
 						"SELECT 
-						 	menu_link_id, menu_link_order, menu_link_type, menu_link_name, page_url_key, post_url_key 
+						 	menu_link_id, menu_link_order, menu_link_name, menu_link_bookmark, menu_link_type_name, menu_link_type_prefix_url, page_url_key, post_url_key 
 						FROM 
 							menu_links 
+						INNER JOIN
+							menus_menu_links ON menu_links.menu_link_id = menus_menu_links.fk_menu_link_id
+						INNER JOIN
+							menu_link_types ON menu_links.fk_link_type_id = menu_link_types.menu_link_type_id
 						INNER JOIN 
 							pages ON menu_links.fk_page_id = pages.page_id 
 						LEFT JOIN 
 							posts ON menu_links.fk_post_id = posts.post_id
 						WHERE 
-							fk_menu_id = $menu_id 
+							menus_menu_links.fk_menu_id = $menu_id 
 						ORDER BY 
 							menu_link_order";
 
@@ -149,16 +103,16 @@ else {
 					// If result returns false, run the function query_error do show debugging info
 					if (!$result) query_error($query, __LINE__, __FILE__);
 
-					prettyprint($query);
+					// prettyprint($query);
 
 					while( $row = $result->fetch_object() )
 					{
-						$link = $row->page_url_key . ($row->menu_link_type == 2 ? '/post/' . $row->post_url_key : '');
+						$link = $row->page_url_key . $row->menu_link_type_prefix_url . $row->post_url_key . $row->menu_link_bookmark;
 						?>
 						<tr class="sortable-item" id="<?php echo $row->menu_link_id ?>">
 							<td class="icon"><?php echo $row->menu_link_order ?></td>
 							<td class="icon"><?php echo $icons['sort'] ?></td>
-							<td><?php echo $row->menu_link_type == 1 ? PAGE : BLOG_POSTS ?></td>
+							<td><?php echo constant($row->menu_link_type_name) ?></td>
 							<td><?php echo $row->menu_link_name ?></td>
 							<td><a href="../<?php echo $link ?>" target="_blank">/<?php echo $link ?></a></td>
 
@@ -187,4 +141,4 @@ else {
 
 
 <?php
-if (DEVELOPER_STATUS) { show_developer_info(); }
+show_developer_info();

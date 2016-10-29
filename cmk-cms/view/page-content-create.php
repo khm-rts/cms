@@ -21,12 +21,28 @@ else
 	// Get the selected page id from the URL param
 	$page_id = intval($_GET['page-id']);
 
+	// Get the page from the Database
+	$query	=
+		"SELECT 
+			page_title
+		FROM 
+			pages 
+		WHERE 
+			page_id = $page_id";
+	$result = $mysqli->query($query);
+
+	// If result returns false, use the function query_error to show debugging info
+	if (!$result) query_error($query, __LINE__, __FILE__);
+
+	// Return the information from the Database as an object
+	$row	= $result->fetch_object();
+
 	?>
 	<div class="page-title">
 	<span class="title">
 		<?php
 		// Get icon and title from Array $files, defined in config.php
-		echo $view_files[$view_file]['icon'] . ' ' . $view_files[$view_file]['title']
+		echo $view_files[$view_file]['icon'] . ' ' . $row->page_title
 		?>
 	</span>
 	</div>
@@ -42,7 +58,8 @@ else
 			<form method="post" data-page="<?php echo $view_file ?>" data-params="page-id=<?php echo $page_id ?>">
 				<?php
 				// Save variables with empty values, to be used in the forms input values
-				$content_type = $description_tmp = $content_tmp = $page_function_tmp = $layout = '';
+				$description_tmp = $content_tmp = $page_function_tmp = $layout = '';
+				$content_type = 1;
 
 				// If the form has been submitted
 				if ( isset($_POST['save_item']) )
@@ -55,18 +72,8 @@ else
 					$page_function_tmp	= $_POST['page_function'];
 
 
-					// If no content type is selected, show alert
-					if ( empty($_POST['content_type']) )
-					{
-						alert('warning', REQUIRED_FIELDS_EMPTY);
-					}
-					// If content type is 1 and one of the required fields is empty, show alert
-					else if ( $content_type == 1 && ( empty($_POST['description']) || empty($_POST['content']) || empty($_POST['layout']) ) )
-					{
-						alert('warning', REQUIRED_FIELDS_EMPTY);
-					}
-					// If content type is 2 and one of the required fields is empty, show alert
-					else if ( $content_type == 2 && ( empty($_POST['page_function']) || empty($_POST['layout']) ) )
+					// If content type or layout is empty. Or content type is 1 and description or content is empty. Or content type is 2 and page function is empty, show alert
+					if ( empty($_POST['content_type']) || empty($_POST['layout']) || ( $content_type == 1 && ( empty($_POST['description']) || empty($_POST['content']) ) ) || ( $content_type == 2 && empty($_POST['page_function']) ) )
 					{
 						alert('warning', REQUIRED_FIELDS_EMPTY);
 					}
@@ -163,10 +170,10 @@ else
 						// Use function to insert event in log
 						create_event('create', 'af indholdet <a href="index.php?page=page-content-edit&page-id=' . $page_id . '&id= ' . $page_content_id . '" data-page="page-content-edit" data-params="page-id=' . $page_id . '&id= ' . $page_content_id . '">' . $content_description . '</a> på siden <a href="index.php?page=page-edit&id=' . $page_id . '" data-page="page-edit" data-params="id='. $page_id . '">' . $row->page_title . '</a>', $view_files[$view_file]['required_access_lvl']);
 
-						// Use function to insert event in log
+						// Use function to display alert
 						alert('success', ITEM_CREATED . ' <a href="index.php?page=page-content&page-id=' . $page_id . '" data-page="page-content" data-params="page-id='. $page_id .'">' . RETURN_TO_OVERVIEW . '</a>');
 
-					} // Closes: ( empty($_POST['title']) || empty($_POST['url_key'])...
+					} // Closes: if ( empty($_POST['content_type']) || empty($_POST['layout'])...
 				} // Closes: if ( isset($_POST['save_item']) )
 
 				include $include_path . 'form-page-content.php'
@@ -176,9 +183,5 @@ else
 	</div>
 	<?php
 }
-?>
 
-
-
-<?php
-if (DEVELOPER_STATUS) { show_developer_info(); }
+show_developer_info();

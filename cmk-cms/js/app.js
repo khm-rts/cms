@@ -63,7 +63,14 @@ $(function() {
 			})
 		});
 
-		$('.select2').select2();
+		$('.select2').select2({
+			width: '100%',
+			"language": {
+				"noResults": function(){
+					return "Ingen resultater fundet";
+				}
+			}
+		});
 
 		var sortable_cache = $('#sortable').html();
 		$('#sortable').sortable({
@@ -221,7 +228,7 @@ $(function() {
 	});
 
 
-	// If there's a instance of CKeditor, we update the matching textareas when content is changed.
+	/*// If there's a instance of CKeditor, we update the matching textareas when content is changed.
 	if ( typeof(CKEDITOR) != 'undefined')
 	{
 		$.each( CKEDITOR.instances, function(instance) {
@@ -231,7 +238,7 @@ $(function() {
 				sel.trigger('change');
 			});
 		});
-	}
+	}*/
 
 	// If an option in the select with the id content_type is changed, do this (is on form-page-content.php)
 	$(document.body).on('change', '#content_type', function() {
@@ -259,9 +266,36 @@ $(function() {
 		if (value == 2) { // If the selected option is 2 (Blog post), do this
 			$('#2').show(); // Show the select with posts
 			$('#2 #post').attr('required', true); // Add the attribute required on the select with posts
+			$('#3').hide(); // Hide the input to bookmark
+			$('#3 #bookmark').attr('required', false); // Remove the attribute required on the input bookmark
+		} else if (value == 3) {
+			$('#2').hide(); // Hide the select with posts
+			$('#2 #post').attr('required', false); // Remove the attribute required on the select with posts
+			$('#3').show(); // Show the input to bookmark
+			$('#3 #bookmark').attr('required', true); // Add the attribute required on the input bookmark
 		} else {
 			$('#2').hide(); // Hide the select with posts
 			$('#2 #post').attr('required', false); // Remove the attribute required on the select with posts
+			$('#3').hide(); // Hide the input to bookmark
+			$('#3 #bookmark').attr('required', false); // Remove the attribute required on the input bookmark
 		}
 	});
+
+	// If there's change in the checkbox with the id link_to_page, do this
+	$(document.body).on('change', '#link_to_page', function () {
+		// If the checkbox is checked...
+		if ( $(this).prop('checked') )
+		{
+			$('#menu_link').show(); // Show the checkboxes for menu and the input for link name
+			$('#menu_link #page').attr('required', true); // Add required to the select for page
+			$('#menu_link #link_name').attr('required', true); // Add required to the input for link name
+		}
+		// If the checkbox is not checked...
+		else
+		{
+			$('#menu_link').hide(); // Hide the checkboxes for menu and the input for link name
+			$('#menu_link #page').attr('required', false); // Remove required to the select for page
+			$('#menu_link #link_name').attr('required', false); // Remove required from the input for link name
+		}
+	})
 });
